@@ -9,7 +9,8 @@ const categories = [
     description:
       "Discover our collection of luxury scented candles crafted with premium soy wax and natural fragrances.",
     href: "/candles",
-    image: "/hero/candlecollection.jpeg",
+    image:
+      "https://xcqewrligvirqwcebcyc.supabase.co/storage/v1/object/public/kaycandlesproducts/candles/candlecollection.jpeg",
     accent: "from-blush-300/80 to-blush-500/80",
     count: "12+ fragrances",
   },
@@ -19,7 +20,8 @@ const categories = [
     description:
       "Handcrafted flowers that never wilt — beautiful, colorful, and made with love for every space.",
     href: "/crafts",
-    image: "/hero/pipecleanercollection.jpeg",
+    image:
+      "https://xcqewrligvirqwcebcyc.supabase.co/storage/v1/object/public/kaycandlesproducts/pipecleanercrafts/pipecleanercollection.jpeg",
     accent: "from-rose-300/80 to-rose-500/80",
     count: "8+ designs",
   },
