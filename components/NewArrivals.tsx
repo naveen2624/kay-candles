@@ -1,7 +1,7 @@
-import { Product } from '@/lib/supabase';
-import ProductCard from './ProductCard';
-import Link from 'next/link';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { Product } from "@/lib/supabase";
+import ProductCard from "./ProductCard";
+import Link from "next/link";
+import { ArrowRight, Sparkles } from "lucide-react";
 
 type Props = { products: Product[] };
 
@@ -21,12 +21,13 @@ export default function NewArrivals({ products }: Props) {
             New Arrivals
           </h2>
           <p className="font-body text-blush-500 mt-3 max-w-md mx-auto text-sm">
-            Fresh from the workshop — be the first to discover our latest creations.
+            Fresh from the workshop — be the first to discover our latest
+            creations.
           </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {products.map((product, i) => (
+          {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
@@ -37,7 +38,10 @@ export default function NewArrivals({ products }: Props) {
             className="inline-flex items-center gap-2 px-8 py-3.5 bg-blush-50 border border-blush-200 text-blush-600 font-body text-sm font-medium rounded-full hover:bg-blush-100 transition-colors group"
           >
             See all new arrivals
-            <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
+            <ArrowRight
+              size={15}
+              className="group-hover:translate-x-1 transition-transform"
+            />
           </Link>
         </div>
       </div>

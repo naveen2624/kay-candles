@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ShoppingBag, Search, Menu, X, Flame } from "lucide-react";
+import { ShoppingBag, Search, Menu, X } from "lucide-react";
 import { useCartStore } from "@/lib/cartStore";
 import { cn } from "@/utils/cn";
 import Image from "next/image";
