@@ -1,7 +1,7 @@
-import { Product } from '@/lib/supabase';
-import ProductCard from './ProductCard';
-import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { Product } from "@/lib/supabase";
+import ProductCard from "./ProductCard";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
 type Props = { products: Product[] };
 
@@ -23,7 +23,10 @@ export default function FeaturedProducts({ products }: Props) {
             className="hidden sm:flex items-center gap-2 font-body text-sm text-blush-500 hover:text-blush-700 transition-colors group"
           >
             View all
-            <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
+            <ArrowRight
+              size={15}
+              className="group-hover:translate-x-1 transition-transform"
+            />
           </Link>
         </div>
 
@@ -33,7 +36,6 @@ export default function FeaturedProducts({ products }: Props) {
               key={product.id}
               product={product}
               className={`animate-fade-up`}
-              // @ts-ignore
               style={{ animationDelay: `${i * 80}ms` }}
             />
           ))}

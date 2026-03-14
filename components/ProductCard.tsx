@@ -1,23 +1,25 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import Image from 'next/image';
-import { ShoppingBag, Heart, Layers } from 'lucide-react';
-import { Product } from '@/lib/supabase';
-import { useCartStore } from '@/lib/cartStore';
-import { useToast } from './ToastProvider';
-import { cn } from '@/utils/cn';
+import Link from "next/link";
+import Image from "next/image";
+import { ShoppingBag, Heart, Layers } from "lucide-react";
+import { Product } from "@/lib/supabase";
+import { useCartStore } from "@/lib/cartStore";
+import { useToast } from "./ToastProvider";
+import { cn } from "@/utils/cn";
 
 type Props = {
   product: Product;
   className?: string;
+  style?: React.CSSProperties;
 };
 
 export default function ProductCard({ product, className }: Props) {
   const { addItem, openCart } = useCartStore();
   const { showToast } = useToast();
 
-  const hasVariants = product.has_variants && (product.variants?.length ?? 0) > 0;
+  const hasVariants =
+    product.has_variants && (product.variants?.length ?? 0) > 0;
   const variantCount = product.variants?.length ?? 0;
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -40,14 +42,15 @@ export default function ProductCard({ product, className }: Props) {
   };
 
   const isNew =
-    Date.now() - new Date(product.created_at).getTime() < 14 * 24 * 60 * 60 * 1000;
+    Date.now() - new Date(product.created_at).getTime() <
+    14 * 24 * 60 * 60 * 1000;
 
   return (
     <Link
       href={`/product/${product.id}`}
       className={cn(
-        'group relative bg-white rounded-2xl overflow-hidden border border-blush-100 card-hover block',
-        className
+        "group relative bg-white rounded-2xl overflow-hidden border border-blush-100 card-hover block",
+        className,
       )}
     >
       {/* Image */}
@@ -69,7 +72,13 @@ export default function ProductCard({ product, className }: Props) {
                 className="relative w-8 h-8 rounded-lg overflow-hidden border-2 border-white shadow-sm shrink-0"
                 title={v.name}
               >
-                <Image src={v.image_url} alt={v.name} fill className="object-cover" sizes="32px" />
+                <Image
+                  src={v.image_url}
+                  alt={v.name}
+                  fill
+                  className="object-cover"
+                  sizes="32px"
+                />
               </div>
             ))}
             {variantCount > 5 && (
@@ -97,7 +106,10 @@ export default function ProductCard({ product, className }: Props) {
         {/* Wishlist */}
         <button
           className="absolute top-3 right-3 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center text-blush-300 hover:text-blush-500 hover:bg-white opacity-0 group-hover:opacity-100 transition-all duration-200"
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
           aria-label="Save to wishlist"
         >
           <Heart size={14} />
@@ -110,7 +122,7 @@ export default function ProductCard({ product, className }: Props) {
             className="w-full flex items-center justify-center gap-2 py-2.5 bg-blush-400/95 hover:bg-blush-500 text-white text-sm font-body font-medium rounded-xl backdrop-blur-sm transition-colors"
           >
             <ShoppingBag size={15} />
-            {hasVariants ? 'Choose Option' : 'Add to Cart'}
+            {hasVariants ? "Choose Option" : "Add to Cart"}
           </button>
         </div>
       </div>
@@ -118,14 +130,14 @@ export default function ProductCard({ product, className }: Props) {
       {/* Content */}
       <div className="p-4">
         <p className="font-body text-[10px] text-blush-400 uppercase tracking-widest mb-1 font-medium">
-          {product.category === 'candles' ? 'Scented Candle' : 'Handcraft'}
+          {product.category === "candles" ? "Scented Candle" : "Handcraft"}
         </p>
         <h3 className="font-accent text-base font-medium text-blush-900 leading-snug mb-1.5 group-hover:text-blush-600 transition-colors line-clamp-1">
           {product.name}
         </h3>
         {hasVariants && (
           <p className="font-body text-[11px] text-blush-400 mb-1.5">
-            {product.variants!.map((v) => v.name).join(' · ')}
+            {product.variants!.map((v) => v.name).join(" · ")}
           </p>
         )}
         <p className="font-body text-xs text-blush-400 leading-relaxed mb-3 line-clamp-2">
