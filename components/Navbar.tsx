@@ -1,16 +1,17 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { ShoppingBag, Search, Menu, X, Flame } from 'lucide-react';
-import { useCartStore } from '@/lib/cartStore';
-import { cn } from '@/utils/cn';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ShoppingBag, Search, Menu, X, Flame } from "lucide-react";
+import { useCartStore } from "@/lib/cartStore";
+import { cn } from "@/utils/cn";
+import Image from "next/image";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { getItemCount, openCart } = useCartStore();
   const router = useRouter();
@@ -18,8 +19,8 @@ export default function Navbar() {
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -27,7 +28,7 @@ export default function Navbar() {
     if (searchQuery.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
       setIsSearchOpen(false);
-      setSearchQuery('');
+      setSearchQuery("");
     }
   };
 
@@ -35,29 +36,24 @@ export default function Navbar() {
     <>
       <nav
         className={cn(
-          'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
+          "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
           isScrolled
-            ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-blush-100'
-            : 'bg-blush-50/90 backdrop-blur-sm'
+            ? "bg-white/95 backdrop-blur-md shadow-sm border-b border-blush-100"
+            : "bg-blush-50/90 backdrop-blur-sm",
         )}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link
-              href="/"
-              className="flex items-center gap-2 group"
-            >
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blush-200 to-blush-400 flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                <Flame size={16} className="text-white" />
-              </div>
+            <Link href="/" className="flex items-center gap-2 group">
               <div className="flex flex-col leading-none">
-                <span className="font-display text-lg font-semibold text-blush-800 tracking-wide">
-                  Kay
-                </span>
-                <span className="text-[10px] font-body text-blush-500 tracking-[0.15em] uppercase -mt-0.5">
-                  Candles & Craft
-                </span>
+                <Image
+                  src="/logo.png"
+                  alt="Kay Candles & Craft Logo"
+                  width={240}
+                  height={240}
+                  className="w-24 h-24 object-contain group-hover:scale-110 transition-transform"
+                />
               </div>
             </Link>
 
@@ -81,6 +77,18 @@ export default function Navbar() {
               >
                 Crafts
               </Link>
+              <Link
+                href="/about"
+                className="font-body text-sm text-blush-700 hover:text-blush-500 transition-colors tracking-wide"
+              >
+                About
+              </Link>
+              <Link
+                href="/contact"
+                className="font-body text-sm text-blush-700 hover:text-blush-500 transition-colors tracking-wide"
+              >
+                Contact
+              </Link>
             </div>
 
             {/* Right icons */}
@@ -103,7 +111,7 @@ export default function Navbar() {
                 <ShoppingBag size={20} />
                 {itemCount > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-blush-400 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-fade-in">
-                    {itemCount > 9 ? '9+' : itemCount}
+                    {itemCount > 9 ? "9+" : itemCount}
                   </span>
                 )}
               </button>
@@ -124,9 +132,9 @@ export default function Navbar() {
           <div className="md:hidden border-t border-blush-100 bg-white/98 backdrop-blur-md animate-fade-in">
             <div className="px-4 py-4 space-y-3">
               {[
-                { href: '/', label: 'Home' },
-                { href: '/candles', label: 'Candles' },
-                { href: '/crafts', label: 'Crafts' },
+                { href: "/", label: "Home" },
+                { href: "/candles", label: "Candles" },
+                { href: "/crafts", label: "Crafts" },
               ].map((item) => (
                 <Link
                   key={item.href}

@@ -3,17 +3,15 @@ import CategoryCards from '@/components/CategoryCards';
 import FeaturedProducts from '@/components/FeaturedProducts';
 import NewArrivals from '@/components/NewArrivals';
 import BrandStory from '@/components/BrandStory';
-import { mockProducts } from '@/utils/mockData';
+import { getFeaturedProducts, getNewArrivals } from '@/lib/supabase';
+
+export const revalidate = 60; // ISR: revalidate every 60 seconds
 
 export default async function HomePage() {
-  // In production, replace with Supabase queries:
-  // const featured = await getFeaturedProducts(8);
-  // const newArrivals = await getNewArrivals(4);
-  
-  const featured = mockProducts.slice(0, 8);
-  const newArrivals = mockProducts
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-    .slice(0, 4);
+  const [featured, newArrivals] = await Promise.all([
+    getFeaturedProducts(8).catch(() => []),
+    getNewArrivals(4).catch(() => []),
+  ]);
 
   return (
     <div className="overflow-x-hidden">

@@ -3,40 +3,60 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ShoppingBag, Heart, ChevronRight, Star, Truck, RefreshCw, Shield } from 'lucide-react';
-import { Product } from '@/lib/supabase';
-import { useCartStore } from '@/lib/cartStore';
+import {
+  ShoppingBag, Heart, ChevronRight, Star,
+  Truck, RefreshCw, Shield, AlertCircle,
+} from 'lucide-react';
+import { Product, ProductVariant } from '@/lib/supabase';
+import { useCartStore, cartItemKey } from '@/lib/cartStore';
 import { useToast } from './ToastProvider';
+import { cn } from '@/utils/cn';
 
 type Props = { product: Product };
 
 const reviews = [
-  { name: 'Priya S.', rating: 5, comment: 'Absolutely love this candle! The fragrance is incredible and lasts so long.', date: '2 days ago' },
+  { name: 'Priya S.', rating: 5, comment: 'Absolutely love this! The fragrance is incredible and lasts so long.', date: '2 days ago' },
   { name: 'Meena R.', rating: 5, comment: 'Ordered as a gift — my friend was delighted. Beautiful packaging too!', date: '1 week ago' },
   { name: 'Ananya K.', rating: 4, comment: 'Great quality handmade product. Will definitely order again.', date: '2 weeks ago' },
 ];
 
 export default function ProductDetailClient({ product }: Props) {
+  const hasVariants = product.has_variants && (product.variants?.length ?? 0) > 0;
+
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [quantity, setQuantity] = useState(1);
+  const [attemptedAdd, setAttemptedAdd] = useState(false);
+
   const { addItem, openCart } = useCartStore();
   const { showToast } = useToast();
 
+  const displayImage = selectedVariant?.image_url ?? product.image_url;
+  const categoryLabel = product.category === 'candles' ? 'Scented Candles' : 'Flowers & Crafts';
+  const categoryHref  = product.category === 'candles' ? '/candles' : '/crafts';
+
   const handleAddToCart = () => {
-    for (let i = 0; i < quantity; i++) {
-      addItem({
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        image_url: product.image_url,
-        category: product.category,
-      });
+    if (hasVariants && !selectedVariant) {
+      setAttemptedAdd(true);
+      showToast('Please choose a variant first', 'error');
+      return;
     }
-    showToast(`${product.name} added to cart!`);
+
+    const cartEntry = {
+      id: product.id,
+      variantId: selectedVariant?.id,
+      name: product.name,
+      variantName: selectedVariant?.name,
+      price: product.price,
+      image_url: displayImage,
+      category: product.category,
+    };
+
+    for (let i = 0; i < quantity; i++) addItem(cartEntry);
+    showToast(
+      `${product.name}${selectedVariant ? ` (${selectedVariant.name})` : ''} added to cart!`
+    );
     openCart();
   };
-
-  const categoryLabel = product.category === 'candles' ? 'Scented Candles' : 'Flowers & Crafts';
-  const categoryHref = product.category === 'candles' ? '/candles' : '/crafts';
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -50,20 +70,56 @@ export default function ProductDetailClient({ product }: Props) {
       </nav>
 
       <div className="grid lg:grid-cols-2 gap-12">
-        {/* Image */}
+        {/* ── Image panel ── */}
         <div className="space-y-4">
-          <div className="relative h-[500px] rounded-3xl overflow-hidden bg-blush-50 border border-blush-100">
+          {/* Main image */}
+          <div className="relative h-[480px] rounded-3xl overflow-hidden bg-blush-50 border border-blush-100">
             <Image
-              src={product.image_url}
-              alt={product.name}
+              src={displayImage}
+              alt={selectedVariant ? `${product.name} – ${selectedVariant.name}` : product.name}
               fill
-              className="object-cover"
+              className="object-cover transition-all duration-500"
               sizes="(max-width: 1024px) 100vw, 50vw"
               priority
             />
+            {selectedVariant && (
+              <div className="absolute bottom-4 left-4 px-3 py-1.5 bg-white/90 backdrop-blur-sm rounded-full border border-blush-100">
+                <span className="font-body text-xs text-blush-700 font-medium">
+                  {selectedVariant.name}
+                </span>
+              </div>
+            )}
           </div>
-          {/* Tag chips */}
-          <div className="flex flex-wrap gap-2">
+
+          {/* Variant thumbnails (if has_variants) */}
+          {hasVariants && (
+            <div className="grid grid-cols-5 gap-2">
+              {product.variants!.map((v) => (
+                <button
+                  key={v.id}
+                  onClick={() => { setSelectedVariant(v); setAttemptedAdd(false); }}
+                  className={cn(
+                    'relative h-16 rounded-xl overflow-hidden border-2 transition-all duration-200',
+                    selectedVariant?.id === v.id
+                      ? 'border-blush-400 scale-105 shadow-md shadow-blush-200'
+                      : 'border-blush-100 hover:border-blush-300 opacity-80 hover:opacity-100'
+                  )}
+                  title={v.name}
+                >
+                  <Image
+                    src={v.image_url}
+                    alt={v.name}
+                    fill
+                    className="object-cover"
+                    sizes="80px"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Tags */}
+          <div className="flex flex-wrap gap-2 pt-1">
             {product.tags?.map((tag) => (
               <span
                 key={tag}
@@ -75,7 +131,7 @@ export default function ProductDetailClient({ product }: Props) {
           </div>
         </div>
 
-        {/* Details */}
+        {/* ── Details panel ── */}
         <div className="space-y-6">
           <div>
             <p className="font-body text-xs text-blush-400 uppercase tracking-[0.2em] mb-2">
@@ -88,7 +144,7 @@ export default function ProductDetailClient({ product }: Props) {
             {/* Rating */}
             <div className="flex items-center gap-2 mb-4">
               <div className="flex">
-                {[1, 2, 3, 4, 5].map((s) => (
+                {[1,2,3,4,5].map((s) => (
                   <Star key={s} size={14} className="text-amber-400 fill-amber-400" />
                 ))}
               </div>
@@ -97,10 +153,14 @@ export default function ProductDetailClient({ product }: Props) {
 
             {/* Price */}
             <div className="flex items-baseline gap-3">
-              <span className="font-display text-4xl font-semibold text-blush-700">₹{product.price}</span>
-              <span className="font-body text-sm text-blush-400 line-through">₹{Math.round(product.price * 1.2)}</span>
+              <span className="font-display text-4xl font-semibold text-blush-700">
+                ₹{product.price}
+              </span>
+              <span className="font-body text-sm text-blush-400 line-through">
+                ₹{Math.round(product.price * 1.2)}
+              </span>
               <span className="px-2.5 py-1 bg-green-50 text-green-600 text-xs font-body font-semibold rounded-full">
-                Save {Math.round(((product.price * 0.2) / (product.price * 1.2)) * 100)}%
+                Save 17%
               </span>
             </div>
           </div>
@@ -111,6 +171,63 @@ export default function ProductDetailClient({ product }: Props) {
               {product.description}
             </p>
           </div>
+
+          {/* ── Variant picker ── */}
+          {hasVariants && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="font-body text-sm text-blush-700 font-semibold">
+                  Choose Variant
+                  {selectedVariant && (
+                    <span className="ml-2 font-normal text-blush-400">— {selectedVariant.name}</span>
+                  )}
+                </label>
+                {attemptedAdd && !selectedVariant && (
+                  <span className="flex items-center gap-1 text-xs text-red-500 font-body">
+                    <AlertCircle size={12} /> Please select one
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                {product.variants!.map((v) => (
+                  <button
+                    key={v.id}
+                    onClick={() => { setSelectedVariant(v); setAttemptedAdd(false); }}
+                    className={cn(
+                      'relative flex flex-col items-center gap-1.5 p-2 rounded-xl border-2 transition-all duration-200 group',
+                      selectedVariant?.id === v.id
+                        ? 'border-blush-400 bg-blush-50 shadow-sm'
+                        : attemptedAdd
+                          ? 'border-red-200 hover:border-blush-300'
+                          : 'border-blush-100 hover:border-blush-300'
+                    )}
+                  >
+                    <div className="relative w-full h-16 rounded-lg overflow-hidden">
+                      <Image
+                        src={v.image_url}
+                        alt={v.name}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        sizes="100px"
+                      />
+                    </div>
+                    <span className={cn(
+                      'font-body text-[11px] font-medium text-center leading-tight',
+                      selectedVariant?.id === v.id ? 'text-blush-700' : 'text-blush-500'
+                    )}>
+                      {v.name}
+                    </span>
+                    {selectedVariant?.id === v.id && (
+                      <div className="absolute top-1.5 right-1.5 w-4 h-4 bg-blush-400 rounded-full flex items-center justify-center">
+                        <span className="text-white text-[8px]">✓</span>
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Delivery notice */}
           <div className="flex items-start gap-3 p-3 bg-green-50 border border-green-100 rounded-xl">
@@ -132,14 +249,14 @@ export default function ProductDetailClient({ product }: Props) {
               <div className="flex items-center gap-3 bg-blush-50 border border-blush-200 rounded-full px-1 py-1">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-8 h-8 rounded-full bg-white border border-blush-200 flex items-center justify-center text-blush-500 hover:bg-blush-100 transition-colors font-bold"
+                  className="w-8 h-8 rounded-full bg-white border border-blush-200 flex items-center justify-center text-blush-500 hover:bg-blush-100 transition-colors font-bold text-lg leading-none"
                 >
                   −
                 </button>
                 <span className="w-8 text-center font-body text-blush-800 font-medium">{quantity}</span>
                 <button
                   onClick={() => setQuantity(quantity + 1)}
-                  className="w-8 h-8 rounded-full bg-white border border-blush-200 flex items-center justify-center text-blush-500 hover:bg-blush-100 transition-colors font-bold"
+                  className="w-8 h-8 rounded-full bg-white border border-blush-200 flex items-center justify-center text-blush-500 hover:bg-blush-100 transition-colors font-bold text-lg leading-none"
                 >
                   +
                 </button>
@@ -149,10 +266,17 @@ export default function ProductDetailClient({ product }: Props) {
             <div className="flex gap-3">
               <button
                 onClick={handleAddToCart}
-                className="flex-1 flex items-center justify-center gap-2 py-4 bg-blush-400 hover:bg-blush-500 text-white font-body font-medium rounded-2xl transition-all duration-200 hover:shadow-lg hover:shadow-blush-200 group"
+                className={cn(
+                  'flex-1 flex items-center justify-center gap-2 py-4 text-white font-body font-medium rounded-2xl transition-all duration-200 group',
+                  hasVariants && !selectedVariant
+                    ? 'bg-blush-300 cursor-pointer hover:bg-blush-400'
+                    : 'bg-blush-400 hover:bg-blush-500 hover:shadow-lg hover:shadow-blush-200'
+                )}
               >
                 <ShoppingBag size={18} />
-                Add to Cart — ₹{product.price * quantity}
+                {hasVariants && !selectedVariant
+                  ? 'Select a Variant First'
+                  : `Add to Cart — ₹${product.price * quantity}`}
               </button>
               <button className="w-14 h-14 border border-blush-200 rounded-2xl flex items-center justify-center text-blush-300 hover:text-blush-500 hover:border-blush-300 hover:bg-blush-50 transition-all">
                 <Heart size={18} />
@@ -181,9 +305,7 @@ export default function ProductDetailClient({ product }: Props) {
 
       {/* Reviews */}
       <div className="mt-16">
-        <h2 className="font-display text-3xl font-light text-blush-900 mb-8">
-          Customer Reviews
-        </h2>
+        <h2 className="font-display text-3xl font-light text-blush-900 mb-8">Customer Reviews</h2>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {reviews.map((review, i) => (
             <div key={i} className="p-5 bg-white rounded-2xl border border-blush-100">

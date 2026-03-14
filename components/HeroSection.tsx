@@ -1,6 +1,7 @@
-import Link from 'next/link';
-import { ArrowRight, Sparkles } from 'lucide-react';
-import SearchBar from './SearchBar';
+import Link from "next/link";
+import { ArrowRight, Sparkles } from "lucide-react";
+import SearchBar from "./SearchBar";
+import Image from "next/image";
 
 export default function HeroSection() {
   return (
@@ -23,7 +24,9 @@ export default function HeroSection() {
 
             <div className="animate-fade-up delay-100">
               <h1 className="font-display text-6xl sm:text-7xl lg:text-8xl font-light text-blush-900 leading-[0.95]">
-                <span className="block italic font-medium text-blush-400">Kay</span>
+                <span className="block italic font-medium text-blush-400">
+                  Kay
+                </span>
                 <span className="block">Candles</span>
                 <span className="block text-4xl sm:text-5xl lg:text-6xl font-light text-blush-600 mt-2">
                   & Craft
@@ -32,7 +35,8 @@ export default function HeroSection() {
             </div>
 
             <p className="font-body text-blush-600 text-lg leading-relaxed max-w-md animate-fade-up delay-200">
-              Artisan scented candles and handmade pipecleaner flowers — each piece crafted to bring warmth and beauty into your everyday.
+              Artisan scented candles and handmade pipecleaner flowers — each
+              piece crafted to bring warmth and beauty into your everyday.
             </p>
 
             <div className="animate-fade-up delay-300">
@@ -45,7 +49,10 @@ export default function HeroSection() {
                 className="inline-flex items-center gap-2 px-7 py-3.5 bg-blush-400 hover:bg-blush-500 text-white font-body font-medium rounded-full transition-all duration-200 hover:shadow-lg hover:shadow-blush-200 group"
               >
                 Shop Candles
-                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                <ArrowRight
+                  size={16}
+                  className="group-hover:translate-x-1 transition-transform"
+                />
               </Link>
               <Link
                 href="/crafts"
@@ -58,13 +65,17 @@ export default function HeroSection() {
             {/* Trust badges */}
             <div className="flex items-center gap-6 pt-2 animate-fade-up delay-500">
               {[
-                { label: '100%', sub: 'Handmade' },
-                { label: 'Free', sub: 'Above ₹999' },
-                { label: 'Same Day', sub: 'Dispatch' },
+                { label: "100%", sub: "Handmade" },
+                { label: "Free", sub: "Above ₹999" },
+                { label: "Same Day", sub: "Dispatch" },
               ].map((badge) => (
                 <div key={badge.label} className="text-center">
-                  <p className="font-accent text-sm font-semibold text-blush-700">{badge.label}</p>
-                  <p className="font-body text-[11px] text-blush-400 tracking-wide">{badge.sub}</p>
+                  <p className="font-accent text-sm font-semibold text-blush-700">
+                    {badge.label}
+                  </p>
+                  <p className="font-body text-[11px] text-blush-400 tracking-wide">
+                    {badge.sub}
+                  </p>
                 </div>
               ))}
             </div>
@@ -74,33 +85,43 @@ export default function HeroSection() {
           <div className="hidden lg:block relative h-[560px]">
             {/* Main image */}
             <div className="absolute top-0 right-0 w-80 h-80 rounded-[2.5rem] overflow-hidden shadow-2xl shadow-blush-200/50 animate-fade-up delay-200">
-              <img
-                src="https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=600&q=80"
-                alt="Rose petal candle"
+              <Image
+                src="/Hero/candlecollection.jpeg"
+                height={240}
+                width={240}
+                alt="Candle Collection"
                 className="w-full h-full object-cover"
               />
             </div>
             {/* Secondary image */}
             <div className="absolute bottom-12 left-0 w-60 h-60 rounded-[2rem] overflow-hidden shadow-xl shadow-blush-200/40 animate-fade-up delay-300">
-              <img
-                src="https://images.unsplash.com/photo-1487530811015-780780169c0a?w=500&q=80"
-                alt="Pipecleaner flowers"
+              <Image
+                src="/Hero/pipecleanercollection.jpeg"
+                height={240}
+                width={240}
+                alt="Pipecleaner Collection"
                 className="w-full h-full object-cover"
               />
             </div>
             {/* Third image */}
             <div className="absolute top-40 left-20 w-44 h-44 rounded-[1.5rem] overflow-hidden shadow-lg shadow-blush-200/40 animate-fade-up delay-400">
-              <img
-                src="https://images.unsplash.com/photo-1608181831718-c9fbe5f36f48?w=400&q=80"
-                alt="Lavender candle"
+              <Image
+                src="/Hero/latte.jpeg"
+                height={240}
+                width={240}
+                alt="Latte candle"
                 className="w-full h-full object-cover"
               />
             </div>
 
             {/* Floating badge */}
             <div className="absolute bottom-32 right-8 bg-white rounded-2xl shadow-xl border border-blush-100 px-4 py-3 animate-float">
-              <p className="font-display text-xs text-blush-400 italic">Free delivery</p>
-              <p className="font-accent text-sm font-semibold text-blush-800">Orders above ₹999</p>
+              <p className="font-display text-xs text-blush-400 italic">
+                Free delivery
+              </p>
+              <p className="font-accent text-sm font-semibold text-blush-800">
+                Orders above ₹999
+              </p>
             </div>
           </div>
         </div>
@@ -108,7 +129,11 @@ export default function HeroSection() {
 
       {/* Wave divider */}
       <div className="absolute bottom-0 left-0 right-0">
-        <svg viewBox="0 0 1440 60" className="w-full fill-white" preserveAspectRatio="none">
+        <svg
+          viewBox="0 0 1440 60"
+          className="w-full fill-white"
+          preserveAspectRatio="none"
+        >
           <path d="M0,30 C360,60 1080,0 1440,30 L1440,60 L0,60 Z" />
         </svg>
       </div>

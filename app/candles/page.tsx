@@ -1,14 +1,15 @@
-import CategoryPageLayout from '@/components/CategoryPageLayout';
-import { getMockProductsByCategory } from '@/utils/mockData';
+import CategoryPageLayout from "@/components/CategoryPageLayout";
+import { getProducts } from "@/lib/supabase";
+
+export const revalidate = 60;
 
 export const metadata = {
-  title: 'Scented Candles | Kay Candles and Craft',
-  description: 'Browse our collection of handcrafted scented soy candles.',
+  title: "Scented Candles | Kay Candles and Craft",
+  description: "Browse our collection of handcrafted scented soy candles.",
 };
 
 export default async function CandlesPage() {
-  // In production: const products = await getProducts('candles');
-  const products = getMockProductsByCategory('candles');
+  const products = await getProducts("candles").catch(() => []);
 
   return (
     <CategoryPageLayout
@@ -16,7 +17,7 @@ export default async function CandlesPage() {
       title="Scented Candles"
       subtitle="Hand-poured with love, fragranced with nature"
       products={products}
-      bannerImage="https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=1200&q=80"
+      bannerImage="/hero/candlecollection.jpeg"
     />
   );
 }

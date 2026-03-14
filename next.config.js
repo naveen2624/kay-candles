@@ -11,8 +11,14 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
+        port: '',
+        pathname: '/**',
       },
     ],
+  },
+  // Next.js 15: opt into React 19 features
+  experimental: {
+    reactCompiler: false,
   },
 };
 

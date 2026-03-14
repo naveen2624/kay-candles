@@ -1,29 +1,38 @@
 import { notFound } from 'next/navigation';
 import ProductDetailClient from '@/components/ProductDetailClient';
 import SimilarProducts from '@/components/SimilarProducts';
-import { getMockProductById, getMockSimilarProducts } from '@/utils/mockData';
+import { getProductById, getSimilarProducts } from '@/lib/supabase';
 
-type Props = {
-  params: { id: string };
-};
+export const revalidate = 60;
+
+type Props = { params: Promise<{ id: string }> };
 
 export async function generateMetadata({ params }: Props) {
-  const product = getMockProductById(params.id);
-  if (!product) return { title: 'Product Not Found' };
-  return {
-    title: `${product.name} | Kay Candles and Craft`,
-    description: product.description,
-  };
+  const { id } = await params;
+  try {
+    const product = await getProductById(id);
+    return {
+      title: `${product.name} | Kay Candles and Craft`,
+      description: product.description,
+    };
+  } catch {
+    return { title: 'Product Not Found' };
+  }
 }
 
 export default async function ProductPage({ params }: Props) {
-  // In production: const product = await getProductById(params.id);
-  const product = getMockProductById(params.id);
-  
-  if (!product) notFound();
+  const { id } = await params;
 
-  // In production: const similar = await getSimilarProducts(product.id, product.category, product.price);
-  const similar = getMockSimilarProducts(product.id, product.category, product.price);
+  let product;
+  try {
+    product = await getProductById(id);
+  } catch {
+    notFound();
+  }
+
+  const similar = await getSimilarProducts(
+    product.id, product.category, product.price
+  ).catch(() => []);
 
   return (
     <div className="min-h-screen bg-blush-50">

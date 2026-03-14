@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ShoppingBag, Plus, Minus, Trash2, ArrowRight, ArrowLeft, Tag } from 'lucide-react';
-import { useCartStore } from '@/lib/cartStore';
+import { useCartStore, cartItemKey } from '@/lib/cartStore';
 import { useRouter } from 'next/navigation';
 
 export default function CartPageClient() {
@@ -16,28 +16,19 @@ export default function CartPageClient() {
 
   useEffect(() => {
     if (items.length === 0) return;
-
-    const fetchDelivery = async () => {
-      setIsLoading(true);
-      try {
-        const res = await fetch('/api/delivery', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            items: items.map((i) => ({ product_id: i.id, quantity: i.quantity })),
-            subtotal,
-          }),
-        });
-        const data = await res.json();
-        setDeliveryFee(data.deliveryFee);
-      } catch {
-        setDeliveryFee(80); // fallback
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchDelivery();
+    setIsLoading(true);
+    fetch('/api/delivery', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        items: items.map((i) => ({ product_id: i.id, quantity: i.quantity })),
+        subtotal,
+      }),
+    })
+      .then((r) => r.json())
+      .then((d) => setDeliveryFee(d.deliveryFee ?? 0))
+      .catch(() => setDeliveryFee(subtotal > 999 ? 0 : 80))
+      .finally(() => setIsLoading(false));
   }, [items, subtotal]);
 
   const total = subtotal + (deliveryFee ?? 0);
@@ -84,69 +75,68 @@ export default function CartPageClient() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Cart items */}
           <div className="lg:col-span-2 space-y-4">
-            {items.map((item) => (
-              <div
-                key={item.id}
-                className="flex gap-5 p-5 bg-white rounded-2xl border border-blush-100"
-              >
-                {/* Image */}
-                <Link href={`/product/${item.id}`}>
-                  <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-blush-50 shrink-0">
-                    <Image
-                      src={item.image_url}
-                      alt={item.name}
-                      fill
-                      className="object-cover"
-                      sizes="96px"
-                    />
-                  </div>
-                </Link>
-
-                {/* Info */}
-                <div className="flex-1 min-w-0">
+            {items.map((item) => {
+              const key = cartItemKey(item);
+              return (
+                <div key={key} className="flex gap-5 p-5 bg-white rounded-2xl border border-blush-100">
+                  {/* Image */}
                   <Link href={`/product/${item.id}`}>
-                    <h3 className="font-accent text-base font-medium text-blush-900 hover:text-blush-600 transition-colors">
-                      {item.name}
-                    </h3>
+                    <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-blush-50 shrink-0">
+                      <Image src={item.image_url} alt={item.name} fill className="object-cover" sizes="96px" />
+                    </div>
                   </Link>
-                  <p className="font-body text-xs text-blush-400 mt-0.5 capitalize">
-                    {item.category === 'candles' ? 'Scented Candle' : 'Handcraft'}
-                  </p>
-                  <p className="font-display text-xl font-semibold text-blush-700 mt-2">
-                    ₹{item.price * item.quantity}
-                  </p>
 
-                  <div className="flex items-center justify-between mt-3">
-                    {/* Quantity */}
-                    <div className="flex items-center gap-2 bg-blush-50 border border-blush-100 rounded-full px-1.5 py-1">
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <Link href={`/product/${item.id}`}>
+                      <h3 className="font-accent text-base font-medium text-blush-900 hover:text-blush-600 transition-colors">
+                        {item.name}
+                      </h3>
+                    </Link>
+                    {item.variantName && (
+                      <p className="font-body text-xs text-blush-500 mt-0.5 font-medium">
+                        {item.variantName}
+                      </p>
+                    )}
+                    <p className="font-body text-xs text-blush-400 mt-0.5 capitalize">
+                      {item.category === 'candles' ? 'Scented Candle' : 'Handcraft'}
+                    </p>
+                    <p className="font-display text-xl font-semibold text-blush-700 mt-2">
+                      ₹{item.price * item.quantity}
+                    </p>
+
+                    <div className="flex items-center justify-between mt-3">
+                      {/* Quantity */}
+                      <div className="flex items-center gap-2 bg-blush-50 border border-blush-100 rounded-full px-1.5 py-1">
+                        <button
+                          onClick={() => updateQuantity(key, item.quantity - 1)}
+                          className="w-7 h-7 rounded-full bg-white border border-blush-200 flex items-center justify-center text-blush-500 hover:bg-blush-100 transition-colors"
+                        >
+                          <Minus size={12} />
+                        </button>
+                        <span className="w-7 text-center font-body text-sm text-blush-800 font-medium">
+                          {item.quantity}
+                        </span>
+                        <button
+                          onClick={() => updateQuantity(key, item.quantity + 1)}
+                          className="w-7 h-7 rounded-full bg-white border border-blush-200 flex items-center justify-center text-blush-500 hover:bg-blush-100 transition-colors"
+                        >
+                          <Plus size={12} />
+                        </button>
+                      </div>
+
+                      {/* Remove */}
                       <button
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                        className="w-7 h-7 rounded-full bg-white border border-blush-200 flex items-center justify-center text-blush-500 hover:bg-blush-100 transition-colors"
+                        onClick={() => removeItem(key)}
+                        className="flex items-center gap-1.5 text-xs font-body text-blush-300 hover:text-red-400 transition-colors"
                       >
-                        <Minus size={12} />
-                      </button>
-                      <span className="w-7 text-center font-body text-sm text-blush-800 font-medium">
-                        {item.quantity}
-                      </span>
-                      <button
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                        className="w-7 h-7 rounded-full bg-white border border-blush-200 flex items-center justify-center text-blush-500 hover:bg-blush-100 transition-colors"
-                      >
-                        <Plus size={12} />
+                        <Trash2 size={13} /> Remove
                       </button>
                     </div>
-
-                    {/* Remove */}
-                    <button
-                      onClick={() => removeItem(item.id)}
-                      className="flex items-center gap-1.5 text-xs font-body text-blush-300 hover:text-red-400 transition-colors"
-                    >
-                      <Trash2 size={13} /> Remove
-                    </button>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
 
             <button
               onClick={clearCart}
@@ -215,9 +205,8 @@ export default function CartPageClient() {
               </button>
             </div>
 
-            {/* Payment methods note */}
             <p className="text-center font-body text-xs text-blush-400">
-              Secure checkout • Cash on Delivery • Razorpay coming soon
+              Secure checkout · COD · Razorpay UPI &amp; Cards
             </p>
           </div>
         </div>
