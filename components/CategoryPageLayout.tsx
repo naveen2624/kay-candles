@@ -1,11 +1,12 @@
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { Product } from '@/lib/supabase';
-import ProductCard from './ProductCard';
-import SearchBar from './SearchBar';
-import { SlidersHorizontal, X } from 'lucide-react';
-import { cn } from '@/utils/cn';
+import { useState, useMemo } from "react";
+import { Product } from "@/lib/supabase";
+import ProductCard from "./ProductCard";
+import SearchBar from "./SearchBar";
+import { SlidersHorizontal, X } from "lucide-react";
+import Image from "next/image";
+// import { cn } from '@/utils/cn';
 
 type Props = {
   category: string;
@@ -16,9 +17,9 @@ type Props = {
 };
 
 const sortOptions = [
-  { value: 'newest', label: 'Newest' },
-  { value: 'price_asc', label: 'Price: Low to High' },
-  { value: 'price_desc', label: 'Price: High to Low' },
+  { value: "newest", label: "Newest" },
+  { value: "price_asc", label: "Price: Low to High" },
+  { value: "price_desc", label: "Price: High to Low" },
 ];
 
 export default function CategoryPageLayout({
@@ -28,8 +29,8 @@ export default function CategoryPageLayout({
   products,
   bannerImage,
 }: Props) {
-  const [search, setSearch] = useState('');
-  const [sort, setSort] = useState('newest');
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState("newest");
   const [maxPrice, setMaxPrice] = useState(1000);
 
   const priceMax = Math.max(...products.map((p) => p.price), 1000);
@@ -39,39 +40,44 @@ export default function CategoryPageLayout({
       const q = search.toLowerCase();
       return (
         p.price <= maxPrice &&
-        (search === '' ||
+        (search === "" ||
           p.name.toLowerCase().includes(q) ||
           p.description.toLowerCase().includes(q) ||
           p.tags?.some((t) => t.toLowerCase().includes(q)))
       );
     });
 
-    if (sort === 'price_asc') list = [...list].sort((a, b) => a.price - b.price);
-    if (sort === 'price_desc') list = [...list].sort((a, b) => b.price - a.price);
-    if (sort === 'newest') {
+    if (sort === "price_asc")
+      list = [...list].sort((a, b) => a.price - b.price);
+    if (sort === "price_desc")
+      list = [...list].sort((a, b) => b.price - a.price);
+    if (sort === "newest") {
       list = [...list].sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
       );
     }
 
     return list;
   }, [products, search, sort, maxPrice]);
 
-  const hasFilters = search !== '' || maxPrice < priceMax;
+  const hasFilters = search !== "" || maxPrice < priceMax;
 
   const clearFilters = () => {
-    setSearch('');
+    setSearch("");
     setMaxPrice(priceMax);
-    setSort('newest');
+    setSort("newest");
   };
 
   return (
     <div className="min-h-screen bg-blush-50">
       {/* Banner */}
       <div className="relative h-52 sm:h-64 overflow-hidden">
-        <img
+        <Image
           src={bannerImage}
           alt={title}
+          height={120}
+          width={120}
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-blush-900/60 via-blush-700/40 to-transparent" />
@@ -92,16 +98,15 @@ export default function CategoryPageLayout({
           <div className="flex items-center gap-3 flex-wrap">
             {/* Search within category */}
             <div className="w-64">
-              <SearchBar
-                size="sm"
-                placeholder={`Search ${category}…`}
-              />
+              <SearchBar size="sm" placeholder={`Search ${category}…`} />
             </div>
 
             {/* Price filter */}
             <div className="flex items-center gap-2 bg-white border border-blush-200 rounded-full px-4 py-2">
               <SlidersHorizontal size={13} className="text-blush-400" />
-              <span className="font-body text-xs text-blush-600">Up to ₹{maxPrice}</span>
+              <span className="font-body text-xs text-blush-600">
+                Up to ₹{maxPrice}
+              </span>
               <input
                 type="range"
                 min={100}
@@ -154,7 +159,9 @@ export default function CategoryPageLayout({
           </div>
         ) : (
           <div className="text-center py-20">
-            <p className="font-accent text-xl text-blush-400 mb-2">No products found</p>
+            <p className="font-accent text-xl text-blush-400 mb-2">
+              No products found
+            </p>
             <p className="font-body text-sm text-blush-300 mb-5">
               Try adjusting your filters or search terms.
             </p>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import Image from "next/image";
 
 const categories = [
   {
@@ -46,9 +47,11 @@ export default function CategoryCards() {
               style={{ animationDelay: `${i * 150}ms` }}
             >
               {/* Background image */}
-              <img
+              <Image
                 src={cat.image}
                 alt={cat.title}
+                height={120}
+                width={120}
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
 
