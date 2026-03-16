@@ -1,6 +1,6 @@
-// components/Footer.tsx
+"use client";
 import Link from "next/link";
-import { Instagram, Mail, Phone, Heart, Flame } from "lucide-react";
+import { Instagram, Mail, Phone, Heart, Flame, Package } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -24,11 +24,12 @@ export default function Footer() {
             </p>
             <div className="flex items-center gap-3 pt-2">
               <a
-                href="https://instagram.com"
+                href="https://instagram.com/kay.candles.in"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-full bg-blush-100 flex items-center justify-center text-blush-500 hover:bg-blush-200 hover:text-blush-700 transition-all"
-                aria-label="Instagram"
+                aria-label="Instagram @kay.candles.in"
+                title="@kay.candles.in"
               >
                 <Instagram size={17} />
               </a>
@@ -41,13 +42,21 @@ export default function Footer() {
               >
                 <Phone size={17} />
               </a>
-              <a
-                href="mailto:hello@kaycandles.com"
+              {/* Email: click to copy instead of mailto */}
+              <button
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(
+                      "kay.candlesin@gmail.com",
+                    );
+                  } catch {}
+                }}
                 className="w-9 h-9 rounded-full bg-blush-100 flex items-center justify-center text-blush-500 hover:bg-blush-200 hover:text-blush-700 transition-all"
-                aria-label="Email"
+                aria-label="Copy email address"
+                title="Click to copy email"
               >
                 <Mail size={17} />
-              </a>
+              </button>
             </div>
           </div>
 
@@ -82,10 +91,10 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2.5">
               {[
-                { label: "About Us", href: "/" },
-                { label: "Shipping Policy", href: "/" },
-                { label: "Return Policy", href: "/" },
-                { label: "Contact Us", href: "/" },
+                { label: "About Us", href: "/about" },
+                { label: "Contact Us", href: "/contact" },
+                { label: "Track Order", href: "/orders" },
+                { label: "Shipping Policy", href: "/contact" },
               ].map((item) => (
                 <li key={item.label}>
                   <Link
@@ -104,8 +113,19 @@ export default function Footer() {
               </p>
               <p className="font-body text-xs text-blush-400 flex items-center gap-2">
                 <Mail size={12} />
-                hello@kaycandles.com
+                kay.candlesin@gmail.com
               </p>
+              <p className="font-body text-xs text-blush-400 flex items-center gap-2">
+                <Instagram size={12} />
+                @kay.candles.in
+              </p>
+              <Link
+                href="/orders"
+                className="font-body text-xs text-blush-400 flex items-center gap-2 hover:text-blush-600 transition-colors"
+              >
+                <Package size={12} />
+                Track your order
+              </Link>
             </div>
           </div>
         </div>
@@ -121,7 +141,7 @@ export default function Footer() {
           <p className="font-body text-xs text-blush-300 flex items-center gap-1">
             Made with{" "}
             <Heart size={10} className="text-blush-400 fill-blush-400" /> by
-            hand
+            Preethi &amp; Naveen
           </p>
         </div>
       </div>

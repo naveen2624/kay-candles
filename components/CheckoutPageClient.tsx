@@ -1,7 +1,6 @@
-// components/CheckoutPageClient.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -15,9 +14,14 @@ import {
   Loader2,
   CreditCard,
   Lock,
+  Tag,
+  X,
+  Sparkles,
+  Mail,
 } from "lucide-react";
 import { useCartStore, cartItemKey } from "@/lib/cartStore";
 import { buildWhatsAppUrl } from "@/utils/whatsappOrder";
+import { Coupon } from "@/lib/supabase";
 import { cn } from "@/utils/cn";
 
 declare global {
@@ -29,6 +33,7 @@ declare global {
 type FormData = {
   name: string;
   phone: string;
+  email: string;
   address: string;
   paymentMethod: "COD" | "Razorpay";
 };
@@ -42,6 +47,7 @@ export default function CheckoutPageClient() {
   const [form, setForm] = useState<FormData>({
     name: "",
     phone: "",
+    email: "",
     address: "",
     paymentMethod: "COD",
   });
@@ -50,9 +56,20 @@ export default function CheckoutPageClient() {
   const [isLoadingDelivery, setIsLoadingDelivery] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [orderNumber, setOrderNumber] = useState("");
   const [rzpLoaded, setRzpLoaded] = useState(false);
 
-  // Load Razorpay SDK
+  // Coupon state
+  const [couponInput, setCouponInput] = useState("");
+  const [coupon, setCoupon] = useState<Coupon | null>(null);
+  const [couponError, setCouponError] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [showCouponPopup, setShowCouponPopup] = useState(false);
+  const couponPopupRef = useRef<HTMLDivElement>(null);
+
+  const [discountAmt, setDiscountAmt] = useState(0);
+  const total = subtotal + (deliveryFee ?? 0) - discountAmt;
+
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
@@ -64,12 +81,10 @@ export default function CheckoutPageClient() {
     };
   }, []);
 
-  // Redirect if cart is empty
   useEffect(() => {
     if (items.length === 0 && !orderPlaced) router.push("/cart");
   }, [items, router, orderPlaced]);
 
-  // Fetch delivery fee
   useEffect(() => {
     if (!items.length) return;
     setIsLoadingDelivery(true);
@@ -87,7 +102,54 @@ export default function CheckoutPageClient() {
       .finally(() => setIsLoadingDelivery(false));
   }, [items, subtotal]);
 
-  const total = subtotal + (deliveryFee ?? 0);
+  // Close popup on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (
+        couponPopupRef.current &&
+        !couponPopupRef.current.contains(e.target as Node)
+      ) {
+        setShowCouponPopup(false);
+      }
+    };
+    if (showCouponPopup) document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [showCouponPopup]);
+
+  const handleApplyCoupon = async () => {
+    if (!couponInput.trim()) return;
+    setCouponLoading(true);
+    setCouponError("");
+    try {
+      const res = await fetch("/api/coupon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: couponInput.trim(), subtotal }),
+      });
+      const data = await res.json();
+      if (!data.valid) {
+        setCouponError(
+          data.error || "Invalid, expired, or inapplicable coupon code.",
+        );
+        setCoupon(null);
+        setDiscountAmt(0);
+      } else {
+        setCoupon(data.coupon as Coupon);
+        setDiscountAmt(data.discountAmt);
+        setShowCouponPopup(true);
+      }
+    } catch {
+      setCouponError("Could not validate coupon. Please try again.");
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setCoupon(null);
+    setCouponInput("");
+    setCouponError("");
+  };
 
   const validate = (): boolean => {
     const e: FormErrors = {};
@@ -95,6 +157,8 @@ export default function CheckoutPageClient() {
     if (!form.phone.trim()) e.phone = "Phone is required";
     else if (!/^[6-9]\d{9}$/.test(form.phone.replace(/\s/g, "")))
       e.phone = "Enter a valid 10-digit Indian mobile number";
+    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+      e.email = "Enter a valid email address";
     if (!form.address.trim()) e.address = "Address is required";
     else if (form.address.trim().length < 20)
       e.address = "Please enter a complete address";
@@ -115,12 +179,13 @@ export default function CheckoutPageClient() {
     paymentId?: string,
     razorpayOrderId?: string,
   ) => {
-    await fetch("/api/orders", {
+    const res = await fetch("/api/orders", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         customer_name: form.name,
         phone: form.phone,
+        email: form.email || null,
         address: form.address,
         items: items.map((i) => ({
           product_id: i.id,
@@ -133,12 +198,16 @@ export default function CheckoutPageClient() {
         })),
         subtotal,
         delivery_fee: deliveryFee ?? 0,
+        discount_amt: discountAmt,
+        coupon_code: coupon?.code ?? null,
         total,
         payment_method: form.paymentMethod,
         payment_id: paymentId,
         razorpay_order_id: razorpayOrderId,
       }),
     });
+    const data = await res.json();
+    return data.order?.order_number ?? "";
   };
 
   const openWhatsApp = () => {
@@ -150,6 +219,8 @@ export default function CheckoutPageClient() {
       subtotal,
       deliveryFee: deliveryFee ?? 0,
       total,
+      couponCode: coupon?.code,
+      discountAmt,
     });
     window.open(url, "_blank");
   };
@@ -158,7 +229,8 @@ export default function CheckoutPageClient() {
     if (!validate()) return;
     setIsPlacingOrder(true);
     try {
-      await saveOrderToDB();
+      const num = await saveOrderToDB();
+      setOrderNumber(num);
       setOrderPlaced(true);
       clearCart();
       setTimeout(openWhatsApp, 600);
@@ -172,13 +244,11 @@ export default function CheckoutPageClient() {
   const handleRazorpay = async () => {
     if (!validate()) return;
     if (!rzpLoaded) {
-      alert("Payment SDK is loading, please try again in a moment.");
+      alert("Payment SDK is loading, please try again.");
       return;
     }
     setIsPlacingOrder(true);
-
     try {
-      // 1. Create Razorpay order server-side
       const res = await fetch("/api/razorpay", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -186,7 +256,6 @@ export default function CheckoutPageClient() {
       });
       const { orderId } = await res.json();
 
-      // 2. Open Razorpay checkout
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: total * 100,
@@ -197,6 +266,7 @@ export default function CheckoutPageClient() {
         prefill: {
           name: form.name,
           contact: `+91${form.phone}`,
+          email: form.email,
         },
         theme: { color: "#ff6b8a" },
         handler: async (response: {
@@ -204,19 +274,18 @@ export default function CheckoutPageClient() {
           razorpay_order_id: string;
           razorpay_signature: string;
         }) => {
-          // 3. Verify signature server-side
           const verifyRes = await fetch("/api/razorpay", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(response),
           });
           const { verified } = await verifyRes.json();
-
           if (verified) {
-            await saveOrderToDB(
+            const num = await saveOrderToDB(
               response.razorpay_payment_id,
               response.razorpay_order_id,
             );
+            setOrderNumber(num);
             setOrderPlaced(true);
             clearCart();
             setTimeout(openWhatsApp, 600);
@@ -227,11 +296,8 @@ export default function CheckoutPageClient() {
           }
           setIsPlacingOrder(false);
         },
-        modal: {
-          ondismiss: () => setIsPlacingOrder(false),
-        },
+        modal: { ondismiss: () => setIsPlacingOrder(false) },
       };
-
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (err) {
@@ -253,17 +319,32 @@ export default function CheckoutPageClient() {
           <div className="w-24 h-24 rounded-full bg-green-50 border-2 border-green-200 flex items-center justify-center mx-auto mb-6 animate-fade-up">
             <CheckCircle size={44} className="text-green-500" />
           </div>
-          <h1 className="font-display text-4xl font-light text-blush-900 mb-3 animate-fade-up delay-100">
+          <h1 className="font-display text-4xl font-light text-blush-900 mb-2 animate-fade-up delay-100">
             Order Placed! 🎉
           </h1>
+          {orderNumber && (
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blush-50 border border-blush-200 rounded-full mb-4">
+              <span className="font-body text-xs text-blush-500">
+                Order Number:
+              </span>
+              <span className="font-accent text-sm font-bold text-blush-700">
+                {orderNumber}
+              </span>
+            </div>
+          )}
           <p className="font-body text-blush-600 mb-2 animate-fade-up delay-200">
             Thank you, <strong>{form.name}</strong>! Your order has been
             received.
           </p>
-          <p className="font-body text-sm text-blush-500 mb-8 animate-fade-up delay-300">
-            We&apos;ve opened WhatsApp so you can confirm your order with us.
-            We&apos;ll get back to you shortly!
+          <p className="font-body text-sm text-blush-500 mb-2 animate-fade-up delay-300">
+            We`&apos;`ve opened WhatsApp so you can confirm your order with us.
           </p>
+          {form.email && (
+            <p className="font-body text-xs text-blush-400 mb-6">
+              A confirmation email will be sent to <strong>{form.email}</strong>
+              .
+            </p>
+          )}
           <div className="space-y-3 animate-fade-up delay-400">
             <Link
               href="/"
@@ -271,9 +352,15 @@ export default function CheckoutPageClient() {
             >
               Continue Shopping
             </Link>
+            <Link
+              href="/orders"
+              className="block w-full py-3.5 border border-blush-200 text-blush-600 font-body text-sm rounded-xl hover:bg-blush-50 transition-colors text-center"
+            >
+              Track Your Order
+            </Link>
             <button
               onClick={openWhatsApp}
-              className="block w-full py-3.5 border border-blush-200 text-blush-600 font-body text-sm rounded-xl hover:bg-blush-50 transition-colors text-center"
+              className="block w-full py-3.5 border border-green-200 text-green-600 font-body text-sm rounded-xl hover:bg-green-50 transition-colors text-center"
             >
               Open WhatsApp Again
             </button>
@@ -285,6 +372,51 @@ export default function CheckoutPageClient() {
 
   return (
     <div className="min-h-screen bg-blush-50 py-10 px-4 sm:px-6 lg:px-8">
+      {/* Coupon Success Popup */}
+      {showCouponPopup && coupon && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/30 backdrop-blur-sm px-4">
+          <div
+            ref={couponPopupRef}
+            className="bg-white rounded-3xl border border-blush-100 shadow-2xl p-8 max-w-sm w-full text-center animate-fade-up"
+          >
+            <div className="w-20 h-20 rounded-full bg-green-50 border-2 border-green-200 flex items-center justify-center mx-auto mb-5">
+              <Sparkles size={36} className="text-green-500" />
+            </div>
+            <h3 className="font-display text-3xl font-light text-blush-900 mb-2">
+              You`&apos;`re saving!
+            </h3>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blush-50 border border-blush-200 rounded-full mb-3">
+              <Tag size={14} className="text-blush-400" />
+              <span className="font-accent text-base font-bold text-blush-700">
+                {coupon.code}
+              </span>
+            </div>
+            <div className="p-4 bg-green-50 rounded-2xl border border-green-100 mb-4">
+              <p className="font-display text-4xl font-semibold text-green-600">
+                {coupon.discount_type === "flat"
+                  ? `₹${coupon.discount_value}`
+                  : `${coupon.discount_value}%`}{" "}
+                OFF
+              </p>
+              <p className="font-body text-sm text-green-600 mt-1">
+                You save <strong>₹{discountAmt}</strong> on this order!
+              </p>
+            </div>
+            {coupon.description && (
+              <p className="font-body text-xs text-blush-500 mb-5">
+                {coupon.description}
+              </p>
+            )}
+            <button
+              onClick={() => setShowCouponPopup(false)}
+              className="w-full py-3 bg-blush-400 hover:bg-blush-500 text-white font-body font-medium rounded-xl transition-colors"
+            >
+              Awesome, apply it! 🎉
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
@@ -366,7 +498,8 @@ export default function CheckoutPageClient() {
               {/* Phone */}
               <div className="space-y-1.5">
                 <label className="font-body text-xs text-blush-600 font-medium flex items-center gap-1.5">
-                  <Phone size={12} className="text-blush-400" /> Phone Number *
+                  <Phone size={12} className="text-blush-400" /> Phone Number
+                  (Whatsapp) *
                 </label>
                 <div className="flex gap-2">
                   <div className="flex items-center px-3 bg-blush-50 border border-blush-100 rounded-xl">
@@ -392,6 +525,34 @@ export default function CheckoutPageClient() {
                 {errors.phone && (
                   <p className="font-body text-xs text-red-500">
                     {errors.phone}
+                  </p>
+                )}
+              </div>
+
+              {/* Email */}
+              <div className="space-y-1.5">
+                <label className="font-body text-xs text-blush-600 font-medium flex items-center gap-1.5">
+                  <Mail size={12} className="text-blush-400" /> Email Address
+                  <span className="text-blush-300 font-normal">
+                    (for order confirmation)
+                  </span>
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  placeholder="you@example.com"
+                  className={cn(
+                    "w-full px-4 py-3 bg-blush-50 border rounded-xl font-body text-sm text-blush-800 placeholder-blush-300 focus:outline-none focus:ring-2 focus:ring-blush-300 transition-all",
+                    errors.email
+                      ? "border-red-300 bg-red-50"
+                      : "border-blush-100",
+                  )}
+                />
+                {errors.email && (
+                  <p className="font-body text-xs text-red-500">
+                    {errors.email}
                   </p>
                 )}
               </div>
@@ -428,7 +589,6 @@ export default function CheckoutPageClient() {
               <h2 className="font-accent text-lg font-semibold text-blush-900 flex items-center gap-2">
                 <Lock size={16} className="text-blush-400" /> Payment Method
               </h2>
-
               <div className="space-y-3">
                 {/* COD */}
                 <label
@@ -459,7 +619,6 @@ export default function CheckoutPageClient() {
                     Available
                   </span>
                 </label>
-
                 {/* Razorpay */}
                 <label
                   className={cn(
@@ -479,8 +638,8 @@ export default function CheckoutPageClient() {
                   />
                   <div className="flex-1">
                     <p className="font-body text-sm font-semibold text-blush-800 flex items-center gap-2">
-                      <CreditCard size={14} className="text-blush-400" />
-                      Online Payment
+                      <CreditCard size={14} className="text-blush-400" /> Online
+                      Payment
                     </p>
                     <p className="font-body text-xs text-blush-400">
                       UPI · Cards · Net Banking via Razorpay
@@ -494,14 +653,6 @@ export default function CheckoutPageClient() {
                   </div>
                 </label>
               </div>
-
-              {form.paymentMethod === "Razorpay" && (
-                <p className="text-[11px] font-body text-blush-400 flex items-center gap-1.5 bg-blush-50 rounded-lg px-3 py-2">
-                  <Lock size={10} className="text-blush-300" />
-                  Your payment is secured by Razorpay — India&apos;s most
-                  trusted payment gateway.
-                </p>
-              )}
             </div>
           </div>
 
@@ -548,7 +699,74 @@ export default function CheckoutPageClient() {
                 ))}
               </div>
 
-              <div className="border-t border-blush-50 pt-4 space-y-2.5">
+              {/* Coupon */}
+              <div className="border-t border-blush-50 pt-4">
+                {coupon ? (
+                  <div className="flex items-center justify-between px-3 py-2.5 bg-green-50 border border-green-200 rounded-xl">
+                    <div className="flex items-center gap-2">
+                      <Tag size={13} className="text-green-500" />
+                      <div>
+                        <p className="font-body text-xs font-bold text-green-700">
+                          {coupon.code}
+                        </p>
+                        <p className="font-body text-[10px] text-green-600">
+                          {coupon.discount_type === "flat"
+                            ? `₹${coupon.discount_value}`
+                            : `${coupon.discount_value}%`}{" "}
+                          off applied!
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={removeCoupon}
+                      className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-green-500 hover:bg-green-200 transition-colors"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    <div className="flex gap-2">
+                      <div className="flex-1 flex items-center gap-2 px-3 py-2.5 bg-blush-50 border border-blush-100 rounded-xl">
+                        <Tag size={13} className="text-blush-300" />
+                        <input
+                          value={couponInput}
+                          onChange={(e) => {
+                            setCouponInput(e.target.value.toUpperCase());
+                            setCouponError("");
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleApplyCoupon();
+                            }
+                          }}
+                          placeholder="Coupon code"
+                          className="flex-1 bg-transparent font-body text-xs text-blush-600 placeholder-blush-300 focus:outline-none uppercase"
+                        />
+                      </div>
+                      <button
+                        onClick={handleApplyCoupon}
+                        disabled={couponLoading || !couponInput.trim()}
+                        className="px-3 py-2.5 bg-blush-400 hover:bg-blush-500 text-white font-body text-xs rounded-xl transition-colors disabled:bg-blush-200 flex items-center gap-1.5"
+                      >
+                        {couponLoading ? (
+                          <Loader2 size={12} className="animate-spin" />
+                        ) : (
+                          "Apply"
+                        )}
+                      </button>
+                    </div>
+                    {couponError && (
+                      <p className="font-body text-[11px] text-red-500">
+                        {couponError}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2.5 border-t border-blush-50 pt-3">
                 <div className="flex justify-between font-body text-sm">
                   <span className="text-blush-500">Subtotal</span>
                   <span className="text-blush-800">₹{subtotal}</span>
@@ -565,6 +783,16 @@ export default function CheckoutPageClient() {
                     )}
                   </span>
                 </div>
+                {discountAmt > 0 && (
+                  <div className="flex justify-between font-body text-sm">
+                    <span className="text-green-600 flex items-center gap-1">
+                      <Tag size={11} /> Coupon Discount
+                    </span>
+                    <span className="text-green-600 font-semibold">
+                      - ₹{discountAmt}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between font-body border-t border-blush-100 pt-3">
                   <span className="font-semibold text-blush-700">Total</span>
                   <span className="font-display text-2xl font-semibold text-blush-700">

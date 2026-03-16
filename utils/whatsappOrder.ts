@@ -10,6 +10,8 @@ type OrderDetails = {
   items: CartItem[];
   subtotal: number;
   deliveryFee: number;
+  couponCode?: string;
+  discountAmt?: number;
   total: number;
 };
 

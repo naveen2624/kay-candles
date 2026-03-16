@@ -1,4 +1,3 @@
-// components/BrandStory.tsx
 import { Heart, Leaf, Star } from "lucide-react";
 import Image from "next/image";
 
@@ -33,27 +32,27 @@ export default function BrandStory() {
             <div className="absolute top-0 left-0 w-72 h-72 rounded-[2rem] overflow-hidden shadow-xl shadow-blush-100">
               <Image
                 src="https://images.unsplash.com/photo-1574325485470-ab92efe7b6a3?w=600&q=80"
-                height={120}
-                width={120}
                 alt="Candle making process"
+                width={480}
+                height={480}
                 className="w-full h-full object-cover"
               />
             </div>
             <div className="absolute bottom-0 right-0 w-64 h-64 rounded-[2rem] overflow-hidden shadow-xl shadow-blush-100">
               <Image
                 src="https://images.unsplash.com/photo-1490750967868-88df5691cc95?w=500&q=80"
-                height={120}
-                width={120}
                 alt="Handmade crafts"
+                width={480}
+                height={480}
                 className="w-full h-full object-cover"
               />
             </div>
             <div className="absolute top-1/2 left-1/2 -translate-x-1/3 -translate-y-1/2 w-48 h-48 rounded-[1.5rem] overflow-hidden shadow-2xl border-4 border-white">
               <Image
                 src="https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=400&q=80"
-                height={120}
-                width={120}
                 alt="Gift set"
+                width={480}
+                height={480}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -63,7 +62,9 @@ export default function BrandStory() {
               <p className="font-display text-sm italic text-blush-600 leading-relaxed">
                 &ldquo;Crafting joy, one piece at a time&rdquo;
               </p>
-              <p className="font-body text-[11px] text-blush-400 mt-1">— Kay</p>
+              <p className="font-body text-[11px] text-blush-400 mt-1">
+                — Kay Candles
+              </p>
             </div>
           </div>
 

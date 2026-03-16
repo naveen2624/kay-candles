@@ -1,4 +1,3 @@
-// components/CartPageClient.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -97,7 +96,6 @@ export default function CartPageClient() {
                   key={key}
                   className="flex gap-5 p-5 bg-white rounded-2xl border border-blush-100"
                 >
-                  {/* Image */}
                   <Link href={`/product/${item.id}`}>
                     <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-blush-50 shrink-0">
                       <Image
@@ -110,7 +108,6 @@ export default function CartPageClient() {
                     </div>
                   </Link>
 
-                  {/* Info */}
                   <div className="flex-1 min-w-0">
                     <Link href={`/product/${item.id}`}>
                       <h3 className="font-accent text-base font-medium text-blush-900 hover:text-blush-600 transition-colors">
@@ -132,7 +129,6 @@ export default function CartPageClient() {
                     </p>
 
                     <div className="flex items-center justify-between mt-3">
-                      {/* Quantity */}
                       <div className="flex items-center gap-2 bg-blush-50 border border-blush-100 rounded-full px-1.5 py-1">
                         <button
                           onClick={() => updateQuantity(key, item.quantity - 1)}
@@ -151,7 +147,6 @@ export default function CartPageClient() {
                         </button>
                       </div>
 
-                      {/* Remove */}
                       <button
                         onClick={() => removeItem(key)}
                         className="flex items-center gap-1.5 text-xs font-body text-blush-300 hover:text-red-400 transition-colors"
@@ -179,18 +174,12 @@ export default function CartPageClient() {
                 Order Summary
               </h2>
 
-              {/* Coupon placeholder */}
-              <div className="flex gap-2">
-                <div className="flex-1 flex items-center gap-2 px-3 py-2.5 bg-blush-50 border border-blush-100 rounded-xl">
-                  <Tag size={13} className="text-blush-300" />
-                  <input
-                    placeholder="Coupon code"
-                    className="flex-1 bg-transparent font-body text-xs text-blush-600 placeholder-blush-300 focus:outline-none"
-                  />
-                </div>
-                <button className="px-3 py-2.5 border border-blush-200 text-blush-500 font-body text-xs rounded-xl hover:bg-blush-50 transition-colors">
-                  Apply
-                </button>
+              {/* Coupon hint */}
+              <div className="flex items-center gap-2 p-3 bg-blush-50 border border-blush-100 rounded-xl">
+                <Tag size={13} className="text-blush-400 shrink-0" />
+                <p className="font-body text-xs text-blush-500">
+                  Have a coupon code? Apply it at checkout for a discount!
+                </p>
               </div>
 
               <div className="space-y-3 border-t border-blush-50 pt-4">

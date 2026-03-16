@@ -1,10 +1,9 @@
-// components/Navbar.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ShoppingBag, Search, Menu, X } from "lucide-react";
+import { ShoppingBag, Search, Menu, X, Package } from "lucide-react";
 import { useCartStore } from "@/lib/cartStore";
 import { cn } from "@/utils/cn";
 import Image from "next/image";
@@ -37,7 +36,7 @@ export default function Navbar() {
     <>
       <nav
         className={cn(
-          "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+          "fixed top-9 left-0 right-0 z-50 transition-all duration-300",
           isScrolled
             ? "bg-white/95 backdrop-blur-md shadow-sm border-b border-blush-100"
             : "bg-blush-50/90 backdrop-blur-sm",
@@ -47,49 +46,32 @@ export default function Navbar() {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 group">
-              <div className="flex flex-col leading-none">
-                <Image
-                  src="/logo.png"
-                  alt="Kay Candles & Craft Logo"
-                  width={240}
-                  height={240}
-                  className="w-24 h-24 object-contain group-hover:scale-110 transition-transform"
-                />
-              </div>
+              <Image
+                src="/logo.png"
+                alt="Kay Candles & Craft Logo"
+                width={240}
+                height={240}
+                className="w-24 h-24 object-contain group-hover:scale-110 transition-transform"
+              />
             </Link>
 
             {/* Desktop Nav */}
             <div className="hidden md:flex items-center gap-8">
-              <Link
-                href="/"
-                className="font-body text-sm text-blush-700 hover:text-blush-500 transition-colors tracking-wide"
-              >
-                Home
-              </Link>
-              <Link
-                href="/candles"
-                className="font-body text-sm text-blush-700 hover:text-blush-500 transition-colors tracking-wide"
-              >
-                Candles
-              </Link>
-              <Link
-                href="/crafts"
-                className="font-body text-sm text-blush-700 hover:text-blush-500 transition-colors tracking-wide"
-              >
-                Crafts
-              </Link>
-              <Link
-                href="/about"
-                className="font-body text-sm text-blush-700 hover:text-blush-500 transition-colors tracking-wide"
-              >
-                About
-              </Link>
-              <Link
-                href="/contact"
-                className="font-body text-sm text-blush-700 hover:text-blush-500 transition-colors tracking-wide"
-              >
-                Contact
-              </Link>
+              {[
+                { href: "/", label: "Home" },
+                { href: "/candles", label: "Candles" },
+                { href: "/crafts", label: "Crafts" },
+                { href: "/about", label: "About" },
+                { href: "/contact", label: "Contact" },
+              ].map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="font-body text-sm text-blush-700 hover:text-blush-500 transition-colors tracking-wide"
+                >
+                  {item.label}
+                </Link>
+              ))}
             </div>
 
             {/* Right icons */}
@@ -102,6 +84,16 @@ export default function Navbar() {
               >
                 <Search size={20} />
               </button>
+
+              {/* Track Order */}
+              <Link
+                href="/orders"
+                className="hidden sm:flex p-2 text-blush-600 hover:text-blush-400 hover:bg-blush-100 rounded-full transition-all"
+                aria-label="Track Order"
+                title="Track your order"
+              >
+                <Package size={20} />
+              </Link>
 
               {/* Cart */}
               <button
@@ -136,9 +128,12 @@ export default function Navbar() {
                 { href: "/", label: "Home" },
                 { href: "/candles", label: "Candles" },
                 { href: "/crafts", label: "Crafts" },
+                { href: "/about", label: "About" },
+                { href: "/contact", label: "Contact" },
+                { href: "/orders", label: "Track Order" },
               ].map((item) => (
                 <Link
-                  key={item.href}
+                  key={item.href + item.label}
                   href={item.href}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="block font-body text-blush-700 hover:text-blush-500 py-2 border-b border-blush-50 transition-colors"
@@ -158,7 +153,7 @@ export default function Navbar() {
           onClick={() => setIsSearchOpen(false)}
         >
           <div
-            className="absolute top-20 left-1/2 -translate-x-1/2 w-full max-w-xl px-4"
+            className="absolute top-28 left-1/2 -translate-x-1/2 w-full max-w-xl px-4"
             onClick={(e) => e.stopPropagation()}
           >
             <form onSubmit={handleSearch} className="relative animate-fade-up">

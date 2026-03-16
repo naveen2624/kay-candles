@@ -1,12 +1,9 @@
-// components/Contactpageclient.tsx
 "use client";
 
 import { useState } from "react";
 import Link from "next/link";
 import {
   Instagram,
-  Phone,
-  Mail,
   MapPin,
   MessageCircle,
   Send,
@@ -33,22 +30,42 @@ const contactInfo = [
     href: "https://wa.me/919787174450",
     color: "bg-green-50 text-green-500 border-green-100",
     description: "Fastest way to reach us — we reply within an hour!",
+    external: true,
   },
   {
     icon: Instagram,
     label: "Instagram",
-    value: "@kaycandles",
-    href: "https://instagram.com",
+    value: "@kay.candles.in",
+    href: "https://instagram.com/kay.candles.in",
     color: "bg-pink-50 text-pink-500 border-pink-100",
     description: "Follow us for new drops, behind-the-scenes, and more.",
+    external: true,
   },
   {
-    icon: Mail,
+    // Using a copy-to-clipboard or mailto-alternative (encoded)
+    icon: ({ size, ...props }: { size: number; className?: string }) => (
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        {...props}
+      >
+        <rect width="20" height="16" x="2" y="4" rx="2" />
+        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+      </svg>
+    ),
     label: "Email",
-    value: "hello@kaycandles.com",
-    href: "mailto:hello@kaycandles.com",
+    value: "kay.candlesin@gmail.com",
+    href: null, // Not using mailto — copy instead
     color: "bg-blush-50 text-blush-500 border-blush-100",
     description: "For bulk orders, collaborations, or general queries.",
+    external: false,
+    copyable: true,
   },
   {
     icon: Clock,
@@ -57,6 +74,7 @@ const contactInfo = [
     href: null,
     color: "bg-amber-50 text-amber-500 border-amber-100",
     description: "We try to respond to all messages same day.",
+    external: false,
   },
 ];
 
@@ -79,6 +97,17 @@ export default function ContactPageClient() {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [status, setStatus] = useState<"idle" | "sending" | "sent">("idle");
+  const [emailCopied, setEmailCopied] = useState(false);
+
+  const handleCopyEmail = async () => {
+    try {
+      await navigator.clipboard.writeText("kay.candlesin@gmail.com");
+      setEmailCopied(true);
+      setTimeout(() => setEmailCopied(false), 2000);
+    } catch {
+      // fallback: do nothing
+    }
+  };
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -107,7 +136,6 @@ export default function ContactPageClient() {
     e.preventDefault();
     if (!validate()) return;
 
-    // Build WhatsApp message from form
     const lines = [
       `📩 *New Contact Form Message*`,
       ``,
@@ -177,45 +205,65 @@ export default function ContactPageClient() {
             </div>
 
             <div className="space-y-3">
-              {contactInfo.map((item) => (
-                <div
-                  key={item.label}
-                  className="bg-white rounded-2xl border border-blush-100 p-5 hover:shadow-sm hover:shadow-blush-100 transition-all duration-200"
-                >
-                  <div className="flex items-start gap-4">
-                    <div
-                      className={cn(
-                        "w-10 h-10 rounded-full border flex items-center justify-center shrink-0",
-                        item.color,
-                      )}
-                    >
-                      <item.icon size={17} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-body text-[10px] text-blush-400 uppercase tracking-widest mb-0.5">
-                        {item.label}
-                      </p>
-                      {item.href ? (
-                        <a
-                          href={item.href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="font-accent text-sm font-semibold text-blush-800 hover:text-blush-500 transition-colors"
-                        >
-                          {item.value}
-                        </a>
-                      ) : (
-                        <p className="font-accent text-sm font-semibold text-blush-800">
-                          {item.value}
+              {contactInfo.map((item) => {
+                const isEmail = item.label === "Email";
+                return (
+                  <div
+                    key={item.label}
+                    className="bg-white rounded-2xl border border-blush-100 p-5 hover:shadow-sm hover:shadow-blush-100 transition-all duration-200"
+                  >
+                    <div className="flex items-start gap-4">
+                      <div
+                        className={cn(
+                          "w-10 h-10 rounded-full border flex items-center justify-center shrink-0",
+                          item.color,
+                        )}
+                      >
+                        <item.icon size={17} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-body text-[10px] text-blush-400 uppercase tracking-widest mb-0.5">
+                          {item.label}
                         </p>
-                      )}
-                      <p className="font-body text-xs text-blush-400 mt-1 leading-relaxed">
-                        {item.description}
-                      </p>
+                        {item.href && item.external ? (
+                          <a
+                            href={item.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-accent text-sm font-semibold text-blush-800 hover:text-blush-500 transition-colors"
+                          >
+                            {item.value}
+                          </a>
+                        ) : isEmail ? (
+                          <button
+                            onClick={handleCopyEmail}
+                            className="font-accent text-sm font-semibold text-blush-800 hover:text-blush-500 transition-colors text-left group flex items-center gap-2"
+                          >
+                            {item.value}
+                            <span
+                              className={cn(
+                                "text-[10px] font-body font-normal transition-all",
+                                emailCopied
+                                  ? "text-green-500"
+                                  : "text-blush-300 group-hover:text-blush-400",
+                              )}
+                            >
+                              {emailCopied ? "✓ Copied!" : "(click to copy)"}
+                            </span>
+                          </button>
+                        ) : (
+                          <p className="font-accent text-sm font-semibold text-blush-800">
+                            {item.value}
+                          </p>
+                        )}
+                        <p className="font-body text-xs text-blush-400 mt-1 leading-relaxed">
+                          {item.description}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Direct WhatsApp CTA */}
@@ -225,8 +273,7 @@ export default function ContactPageClient() {
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 w-full py-3.5 bg-green-500 hover:bg-green-600 text-white font-body font-medium rounded-xl transition-colors shadow-sm"
             >
-              <MessageCircle size={18} />
-              Chat on WhatsApp Now
+              <MessageCircle size={18} /> Chat on WhatsApp Now
             </a>
 
             {/* Location note */}
@@ -300,7 +347,7 @@ export default function ContactPageClient() {
                   </p>
                 </div>
 
-                {/* Name + Phone row */}
+                {/* Name + Phone */}
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="font-body text-xs text-blush-600 font-medium">
@@ -325,7 +372,6 @@ export default function ContactPageClient() {
                       </p>
                     )}
                   </div>
-
                   <div className="space-y-1.5">
                     <label className="font-body text-xs text-blush-600 font-medium">
                       Phone{" "}
@@ -362,7 +408,7 @@ export default function ContactPageClient() {
                   </div>
                 </div>
 
-                {/* Email + Subject row */}
+                {/* Email + Subject */}
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="font-body text-xs text-blush-600 font-medium">
@@ -390,7 +436,6 @@ export default function ContactPageClient() {
                       </p>
                     )}
                   </div>
-
                   <div className="space-y-1.5">
                     <label className="font-body text-xs text-blush-600 font-medium">
                       Subject
@@ -457,7 +502,6 @@ export default function ContactPageClient() {
                     </>
                   )}
                 </button>
-
                 <p className="font-body text-[11px] text-blush-400 text-center">
                   Your message will open in WhatsApp so we can reply directly.
                 </p>

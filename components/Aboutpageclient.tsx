@@ -1,31 +1,31 @@
-//components/Aboutpageclient.tsx
 import Link from "next/link";
 import { Heart, Leaf, Star, Flame, ArrowRight, Sparkles } from "lucide-react";
+import Image from "next/image";
 
 const timeline = [
   {
-    year: "2021",
-    title: "The First Pour",
+    year: "Dec 2025",
+    title: "The Beginning",
     description:
-      "Kay started making candles in her kitchen — gifting them to friends and family who kept asking for more.",
+      "Preethi and Naveen started Kay Candles and Craft — born from a shared love for handmade things and the warmth only a hand-poured candle can bring.",
   },
   {
-    year: "2022",
-    title: "Pipecleaner Blooms",
+    year: "Jan 2026",
+    title: "First Pour",
     description:
-      "The craft side was born when Kay began twisting pipecleaner flowers that would never wilt — a permanent little joy.",
+      "The first batch of candles came to life in their kitchen — gifted to friends and family who kept asking for more, and more, and more.",
   },
   {
-    year: "2023",
-    title: "Going Online",
+    year: "Feb 2026",
+    title: "First Pop-Up Stall",
     description:
-      "Word spread on Instagram. Orders started coming in from across India and Kay Candles and Craft officially launched.",
+      "Kay Candles and Craft made its first public appearance! The pop-up stall was a hit — people fell in love with the scents, the crafts, and the story behind them.",
   },
   {
-    year: "2024",
-    title: "Growing with Love",
+    year: "Mar 2026",
+    title: "Pipecleaner Blooms Launch",
     description:
-      "Still every piece handmade, still every order packed with care. No factories, no shortcuts — just Kay and her craft.",
+      "Naveen started twisting pipecleaner flowers that would never wilt — a permanent little joy. The craft side of Kay was officially born.",
   },
 ];
 
@@ -78,9 +78,10 @@ export default function AboutPageClient() {
                 <em className="italic text-blush-400 block mt-1">with love</em>
               </h1>
               <p className="font-body text-blush-600 text-lg leading-relaxed max-w-md mb-8">
-                Kay Candles and Craft started as a quiet hobby and grew into
-                something beautiful — a small business built on the belief that
-                handmade things carry a warmth that nothing else can.
+                Kay Candles and Craft is a small business built by two people
+                who believe handmade things carry a warmth that nothing
+                mass-produced ever can. Started in December 2025 — and growing
+                with love every day.
               </p>
               <Link
                 href="/candles"
@@ -97,23 +98,29 @@ export default function AboutPageClient() {
             {/* Image collage */}
             <div className="hidden lg:block relative h-[540px]">
               <div className="absolute top-0 right-0 w-72 h-80 rounded-[2.5rem] overflow-hidden shadow-2xl shadow-blush-200/50">
-                <img
-                  src="https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=600&q=80"
-                  alt="Kay pouring candles"
+                <Image
+                  src="https://xcqewrligvirqwcebcyc.supabase.co/storage/v1/object/public/kaycandlesproducts/pipecleanercrafts/pipecleanercollection.jpeg"
+                  alt="Candle pouring"
+                  height={480}
+                  width={480}
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="absolute bottom-0 left-4 w-60 h-64 rounded-[2rem] overflow-hidden shadow-xl shadow-blush-200/40">
-                <img
-                  src="https://images.unsplash.com/photo-1487530811015-780780169c0a?w=500&q=80"
+                <Image
+                  src="https://xcqewrligvirqwcebcyc.supabase.co/storage/v1/object/public/kaycandlesproducts/candles/candlecollection.jpeg"
                   alt="Pipecleaner flowers"
+                  height={480}
+                  width={480}
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="absolute top-44 left-24 w-44 h-44 rounded-[1.5rem] overflow-hidden shadow-lg border-4 border-white">
-                <img
+                <Image
                   src="https://images.unsplash.com/photo-1608181831718-c9fbe5f36f48?w=400&q=80"
                   alt="Candle close up"
+                  height={480}
+                  width={480}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -123,7 +130,7 @@ export default function AboutPageClient() {
                   &ldquo;Every piece is poured with intention&rdquo;
                 </p>
                 <p className="font-body text-[11px] text-blush-400 mt-1.5">
-                  — Kay
+                  — Preethi & Naveen
                 </p>
               </div>
             </div>
@@ -153,9 +160,7 @@ export default function AboutPageClient() {
           </div>
 
           <div className="relative">
-            {/* vertical line */}
             <div className="absolute left-8 top-0 bottom-0 w-px bg-blush-200 hidden sm:block" />
-
             <div className="space-y-10">
               {timeline.map((item, i) => (
                 <div
@@ -163,15 +168,13 @@ export default function AboutPageClient() {
                   className="flex gap-6 sm:gap-10 items-start animate-fade-up"
                   style={{ animationDelay: `${i * 100}ms` }}
                 >
-                  {/* Year bubble */}
                   <div className="relative shrink-0">
                     <div className="w-16 h-16 rounded-full bg-white border-2 border-blush-200 flex flex-col items-center justify-center shadow-sm z-10 relative">
-                      <span className="font-display text-sm font-semibold text-blush-700 leading-none">
+                      <span className="font-display text-[11px] font-semibold text-blush-700 leading-tight text-center px-1">
                         {item.year}
                       </span>
                     </div>
                   </div>
-                  {/* Content */}
                   <div className="flex-1 pb-2 pt-3">
                     <h3 className="font-accent text-lg font-semibold text-blush-800 mb-1.5">
                       {item.title}
@@ -198,7 +201,6 @@ export default function AboutPageClient() {
               Our Values
             </h2>
           </div>
-
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {values.map((v, i) => (
               <div
@@ -221,57 +223,105 @@ export default function AboutPageClient() {
         </div>
       </section>
 
-      {/* ── Meet Kay ── */}
+      {/* ── Meet the Makers ── */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-blush-50">
         <div className="max-w-5xl mx-auto">
-          <div className="bg-white rounded-3xl border border-blush-100 overflow-hidden shadow-sm">
-            <div className="grid md:grid-cols-2">
-              {/* Image */}
-              <div className="relative h-72 md:h-auto min-h-[320px]">
-                <img
-                  src="https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=700&q=80"
-                  alt="Kay at work"
+          <div className="text-center mb-12">
+            <p className="font-body text-xs text-blush-400 uppercase tracking-[0.25em] mb-3">
+              The Faces Behind the Brand
+            </p>
+            <h2 className="font-display text-5xl font-light text-blush-900">
+              Meet the Makers
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Preethi */}
+            <div className="bg-white rounded-3xl border border-blush-100 overflow-hidden shadow-sm">
+              <div className="relative h-64">
+                <Image
+                  src="https://xcqewrligvirqwcebcyc.supabase.co/storage/v1/object/public/kaycandlesproducts/preethifounderkay.jpeg"
+                  alt="Preethi"
+                  height={480}
+                  width={480}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent to-white/10" />
+                <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent" />
               </div>
-
-              {/* Text */}
-              <div className="p-10 flex flex-col justify-center">
-                <div className="inline-flex items-center gap-2 mb-5">
+              <div className="p-8">
+                <div className="inline-flex items-center gap-2 mb-4">
                   <div className="w-8 h-px bg-blush-300" />
                   <span className="font-body text-xs text-blush-400 uppercase tracking-widest">
-                    Meet the Maker
+                    Founder
                   </span>
                 </div>
-                <h2 className="font-display text-4xl font-light text-blush-900 mb-4">
+                <h3 className="font-display text-3xl font-light text-blush-900 mb-4">
                   Hi, I&apos;m{" "}
                   <em className="italic text-blush-400">Preethi</em>
-                </h2>
+                </h3>
                 <p className="font-body text-blush-600 text-sm leading-relaxed mb-4">
-                  I&apos;m a self-taught candle maker and craft artist based in
-                  India. I started making candles because I fell in love with
-                  how a single flame could change the energy of a room — and
-                  never looked back.
+                  I&apos;m a self-taught candle maker with a deep love for
+                  fragrance and the art of slow, intentional crafting. I fell in
+                  love with how a single flame could change the energy of a room
+                  — and I&apos;ve been pouring candles ever since.
                 </p>
-                <p className="font-body text-blush-500 text-sm leading-relaxed mb-6">
-                  Every product you order is made by me, packed by me, and sent
-                  with genuine care. When you buy from Kay Candles and Craft,
-                  you&apos;re supporting a one-woman small business — and that
-                  means the world.
+                <p className="font-body text-blush-500 text-sm leading-relaxed">
+                  Every candle you order is hand-poured by me with genuine care.
+                  When you buy from Kay, you&apos;re supporting a small dream —
+                  and that means everything.
                 </p>
-                <Link
-                  href="/contact"
-                  className="inline-flex items-center gap-2 font-body text-sm text-blush-500 hover:text-blush-700 transition-colors group w-fit"
-                >
-                  Say hello
-                  <ArrowRight
-                    size={14}
-                    className="group-hover:translate-x-1 transition-transform"
-                  />
-                </Link>
               </div>
             </div>
+
+            {/* Naveen */}
+            <div className="bg-white rounded-3xl border border-blush-100 overflow-hidden shadow-sm">
+              <div className="relative h-64">
+                <Image
+                  src="https://xcqewrligvirqwcebcyc.supabase.co/storage/v1/object/public/kaycandlesproducts/naveencofounderkay.jpeg"
+                  alt="Naveen"
+                  height={480}
+                  width={480}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent" />
+              </div>
+              <div className="p-8">
+                <div className="inline-flex items-center gap-2 mb-4">
+                  <div className="w-8 h-px bg-blush-300" />
+                  <span className="font-body text-xs text-blush-400 uppercase tracking-widest">
+                    Co-Founder
+                  </span>
+                </div>
+                <h3 className="font-display text-3xl font-light text-blush-900 mb-4">
+                  And I&apos;m <em className="italic text-blush-400">Naveen</em>
+                </h3>
+                <p className="font-body text-blush-600 text-sm leading-relaxed mb-4">
+                  I handle the technical side of Kay — managing the website,
+                  handling orders, and making sure everything runs smoothly
+                  behind the scenes. From building and maintaining the online
+                  store to ensuring every order is processed correctly, I focus
+                  on creating a seamless experience for our customers.
+                </p>
+
+                <p className="font-body text-blush-500 text-sm leading-relaxed">
+                  While the creativity brings our products to life, my role is
+                  to make sure the technology and operations support it. I’m
+                  passionate about building efficient systems that help our
+                  small business grow and deliver happiness to every customer.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Together */}
+          <div className="mt-8 bg-white rounded-3xl border border-blush-100 p-8 text-center">
+            <Sparkles size={20} className="text-blush-300 mx-auto mb-4" />
+            <p className="font-display text-2xl font-light text-blush-800 max-w-2xl mx-auto leading-relaxed">
+              Together, we started Kay Candles and Craft in{" "}
+              <em className="italic text-blush-400">December 2025</em> — with a
+              kitchen table, a love for handmade things, and the belief that
+              beautiful crafts should be accessible to everyone.
+            </p>
           </div>
         </div>
       </section>

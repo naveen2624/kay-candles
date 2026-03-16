@@ -1,10 +1,9 @@
-// components/ProductCard.tsx
 "use client";
 
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingBag, Heart, Layers } from "lucide-react";
-import { Product } from "@/lib/supabase";
+import { ShoppingBag, Heart, Layers, Tag } from "lucide-react";
+import { Product, getTotalDiscountPct, getOriginalPrice } from "@/lib/supabase";
 import { useCartStore } from "@/lib/cartStore";
 import { useToast } from "./ToastProvider";
 import { cn } from "@/utils/cn";
@@ -15,20 +14,31 @@ type Props = {
   style?: React.CSSProperties;
 };
 
-export default function ProductCard({ product, className }: Props) {
+export default function ProductCard({ product, className, style }: Props) {
   const { addItem, openCart } = useCartStore();
   const { showToast } = useToast();
 
   const hasVariants =
     product.has_variants && (product.variants?.length ?? 0) > 0;
+  const hasFragrances = (product.fragrances?.length ?? 0) > 0;
   const variantCount = product.variants?.length ?? 0;
+  const totalDiscount = getTotalDiscountPct(product);
+  const originalPrice = getOriginalPrice(product);
+
+  const isProductOutOfStock = !hasVariants && product.stock <= 0;
+  const allVariantsOOS =
+    hasVariants && product.variants!.every((v) => v.is_out_of_stock);
+  const isOutOfStock = isProductOutOfStock || allVariantsOOS;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    // Products with variants must go to product page to pick a variant
-    if (hasVariants) {
+    if (hasVariants || hasFragrances) {
       window.location.href = `/product/${product.id}`;
+      return;
+    }
+    if (isOutOfStock) {
+      showToast("This item is out of stock", "error");
       return;
     }
     addItem({
@@ -51,8 +61,10 @@ export default function ProductCard({ product, className }: Props) {
       href={`/product/${product.id}`}
       className={cn(
         "group relative bg-white rounded-2xl overflow-hidden border border-blush-100 card-hover block",
+        isOutOfStock && "opacity-75",
         className,
       )}
+      style={style}
     >
       {/* Image */}
       <div className="relative h-60 overflow-hidden bg-blush-50">
@@ -60,18 +72,33 @@ export default function ProductCard({ product, className }: Props) {
           src={product.image_url}
           alt={product.name}
           fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          className={cn(
+            "object-cover transition-transform duration-500 group-hover:scale-105",
+            isOutOfStock && "grayscale",
+          )}
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
         />
 
-        {/* Variant thumbnails strip (on hover) */}
+        {/* Out of stock overlay */}
+        {isOutOfStock && (
+          <div className="absolute inset-0 bg-white/50 flex items-center justify-center">
+            <span className="px-3 py-1.5 bg-white/90 border border-gray-200 text-gray-500 text-xs font-body font-semibold rounded-full">
+              Out of Stock
+            </span>
+          </div>
+        )}
+
+        {/* Variant thumbnails strip on hover */}
         {hasVariants && (product.variants?.length ?? 0) > 0 && (
           <div className="absolute bottom-0 left-0 right-0 flex gap-1 p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-t from-black/30 to-transparent">
             {product.variants!.slice(0, 5).map((v) => (
               <div
                 key={v.id}
-                className="relative w-8 h-8 rounded-lg overflow-hidden border-2 border-white shadow-sm shrink-0"
-                title={v.name}
+                className={cn(
+                  "relative w-8 h-8 rounded-lg overflow-hidden border-2 border-white shadow-sm shrink-0",
+                  v.is_out_of_stock && "grayscale opacity-60",
+                )}
+                title={v.is_out_of_stock ? `${v.name} (Out of stock)` : v.name}
               >
                 <Image
                   src={v.image_url}
@@ -92,14 +119,24 @@ export default function ProductCard({ product, className }: Props) {
 
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-          {isNew && (
+          {isNew && !isOutOfStock && (
             <span className="px-2.5 py-1 bg-blush-400 text-white text-[10px] font-body font-semibold tracking-wider uppercase rounded-full">
               New
+            </span>
+          )}
+          {totalDiscount > 0 && !isOutOfStock && (
+            <span className="px-2.5 py-1 bg-green-500 text-white text-[10px] font-body font-semibold rounded-full flex items-center gap-1">
+              <Tag size={8} /> {totalDiscount}% OFF
             </span>
           )}
           {hasVariants && (
             <span className="px-2.5 py-1 bg-white/90 text-blush-600 text-[10px] font-body font-medium rounded-full flex items-center gap-1">
               <Layers size={9} /> {variantCount} options
+            </span>
+          )}
+          {hasFragrances && (
+            <span className="px-2.5 py-1 bg-white/90 text-blush-600 text-[10px] font-body font-medium rounded-full">
+              🌸 {product.fragrances!.length} scents
             </span>
           )}
         </div>
@@ -117,15 +154,17 @@ export default function ProductCard({ product, className }: Props) {
         </button>
 
         {/* Add to cart overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-          <button
-            onClick={handleAddToCart}
-            className="w-full flex items-center justify-center gap-2 py-2.5 bg-blush-400/95 hover:bg-blush-500 text-white text-sm font-body font-medium rounded-xl backdrop-blur-sm transition-colors"
-          >
-            <ShoppingBag size={15} />
-            {hasVariants ? "Choose Option" : "Add to Cart"}
-          </button>
-        </div>
+        {!isOutOfStock && (
+          <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+            <button
+              onClick={handleAddToCart}
+              className="w-full flex items-center justify-center gap-2 py-2.5 bg-blush-400/95 hover:bg-blush-500 text-white text-sm font-body font-medium rounded-xl backdrop-blur-sm transition-colors"
+            >
+              <ShoppingBag size={15} />
+              {hasVariants || hasFragrances ? "Choose Options" : "Add to Cart"}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Content */}
@@ -141,13 +180,30 @@ export default function ProductCard({ product, className }: Props) {
             {product.variants!.map((v) => v.name).join(" · ")}
           </p>
         )}
+        {hasFragrances && (
+          <p className="font-body text-[11px] text-blush-400 mb-1.5">
+            {product
+              .fragrances!.slice(0, 3)
+              .map((pf) => pf.fragrance.name)
+              .join(" · ")}
+            {product.fragrances!.length > 3 &&
+              ` +${product.fragrances!.length - 3} more`}
+          </p>
+        )}
         <p className="font-body text-xs text-blush-400 leading-relaxed mb-3 line-clamp-2">
           {product.description}
         </p>
         <div className="flex items-center justify-between">
-          <span className="font-display text-xl font-semibold text-blush-700">
-            ₹{product.price}
-          </span>
+          <div>
+            <span className="font-display text-xl font-semibold text-blush-700">
+              ₹{product.price}
+            </span>
+            {totalDiscount > 0 && (
+              <span className="ml-2 font-body text-xs text-blush-400 line-through">
+                ₹{originalPrice}
+              </span>
+            )}
+          </div>
           <div className="flex gap-1">
             {product.tags?.slice(0, 2).map((tag) => (
               <span

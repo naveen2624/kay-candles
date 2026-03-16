@@ -1,10 +1,10 @@
-// app/layout.tsx
 import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CartDrawer from "@/components/CartDrawer";
 import ToastProvider from "@/components/ToastProvider";
+import AnnouncementBanner from "@/components/Announcementbanner";
 
 export const metadata: Metadata = {
   title: "Kay Candles and Craft",
@@ -29,9 +29,12 @@ export default function RootLayout({
     <html lang="en">
       <body className="min-h-screen bg-blush-50">
         <ToastProvider>
+          {/* Announcement marquee banner — always on top */}
+          <AnnouncementBanner />
           <Navbar />
           <CartDrawer />
-          <main className="pt-16">{children}</main>
+          {/* pt-16 for navbar + 36px for announcement banner */}
+          <main className="pt-[100px]">{children}</main>
           <Footer />
         </ToastProvider>
       </body>

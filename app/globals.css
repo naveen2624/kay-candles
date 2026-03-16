@@ -130,3 +130,25 @@ body {
     background-position: 200% 0;
   }
 }
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Announcement marquee — fallback if JSX styles don't load */
+@keyframes marquee-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
