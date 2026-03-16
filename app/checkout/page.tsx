@@ -1,6 +1,7 @@
-'use client';
+// app/checkout/page.tsx
+"use client";
 
-import CheckoutPageClient from '@/components/CheckoutPageClient';
+import CheckoutPageClient from "@/components/CheckoutPageClient";
 
 export default function CheckoutPage() {
   return <CheckoutPageClient />;

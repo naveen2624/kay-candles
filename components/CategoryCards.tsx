@@ -1,3 +1,4 @@
+// components/CategoryCards.tsx
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
@@ -52,9 +53,9 @@ export default function CategoryCards() {
               <Image
                 src={cat.image}
                 alt={cat.title}
-                height={120}
-                width={120}
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                height={480}
+                width={480}
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 blur-none group-hover:blur-sm"
               />
 
               {/* Gradient overlay */}

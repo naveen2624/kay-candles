@@ -1,6 +1,7 @@
-'use client';
+// app/cart/page.tsx
+"use client";
 
-import CartPageClient from '@/components/CartPageClient';
+import CartPageClient from "@/components/CartPageClient";
 
 export default function CartPage() {
   return <CartPageClient />;

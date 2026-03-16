@@ -1,7 +1,8 @@
-import { notFound } from 'next/navigation';
-import ProductDetailClient from '@/components/ProductDetailClient';
-import SimilarProducts from '@/components/SimilarProducts';
-import { getProductById, getSimilarProducts } from '@/lib/supabase';
+// app/product/[id]/page.tsx
+import { notFound } from "next/navigation";
+import ProductDetailClient from "@/components/ProductDetailClient";
+import SimilarProducts from "@/components/SimilarProducts";
+import { getProductById, getSimilarProducts } from "@/lib/supabase";
 
 export const revalidate = 60;
 
@@ -16,7 +17,7 @@ export async function generateMetadata({ params }: Props) {
       description: product.description,
     };
   } catch {
-    return { title: 'Product Not Found' };
+    return { title: "Product Not Found" };
   }
 }
 
@@ -31,7 +32,9 @@ export default async function ProductPage({ params }: Props) {
   }
 
   const similar = await getSimilarProducts(
-    product.id, product.category, product.price
+    product.id,
+    product.category,
+    product.price,
   ).catch(() => []);
 
   return (

@@ -1,14 +1,24 @@
-'use client';
+// components/CartPageClient.tsx
+"use client";
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { ShoppingBag, Plus, Minus, Trash2, ArrowRight, ArrowLeft, Tag } from 'lucide-react';
-import { useCartStore, cartItemKey } from '@/lib/cartStore';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import {
+  ShoppingBag,
+  Plus,
+  Minus,
+  Trash2,
+  ArrowRight,
+  ArrowLeft,
+  Tag,
+} from "lucide-react";
+import { useCartStore, cartItemKey } from "@/lib/cartStore";
+import { useRouter } from "next/navigation";
 
 export default function CartPageClient() {
-  const { items, removeItem, updateQuantity, getSubtotal, clearCart } = useCartStore();
+  const { items, removeItem, updateQuantity, getSubtotal, clearCart } =
+    useCartStore();
   const [deliveryFee, setDeliveryFee] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const subtotal = getSubtotal();
@@ -17,9 +27,9 @@ export default function CartPageClient() {
   useEffect(() => {
     if (items.length === 0) return;
     setIsLoading(true);
-    fetch('/api/delivery', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    fetch("/api/delivery", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         items: items.map((i) => ({ product_id: i.id, quantity: i.quantity })),
         subtotal,
@@ -39,9 +49,12 @@ export default function CartPageClient() {
         <div className="w-24 h-24 rounded-full bg-blush-100 flex items-center justify-center mb-6">
           <ShoppingBag size={40} className="text-blush-300" />
         </div>
-        <h1 className="font-display text-4xl font-light text-blush-800 mb-3">Your cart is empty</h1>
+        <h1 className="font-display text-4xl font-light text-blush-800 mb-3">
+          Your cart is empty
+        </h1>
         <p className="font-body text-blush-500 mb-8 text-center max-w-sm">
-          Looks like you haven&apos;t added anything yet. Explore our handcrafted collection!
+          Looks like you haven&apos;t added anything yet. Explore our
+          handcrafted collection!
         </p>
         <Link
           href="/candles"
@@ -59,9 +72,11 @@ export default function CartPageClient() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="font-display text-4xl sm:text-5xl font-light text-blush-900">Your Cart</h1>
+            <h1 className="font-display text-4xl sm:text-5xl font-light text-blush-900">
+              Your Cart
+            </h1>
             <p className="font-body text-sm text-blush-400 mt-1">
-              {items.length} {items.length === 1 ? 'item' : 'items'}
+              {items.length} {items.length === 1 ? "item" : "items"}
             </p>
           </div>
           <Link
@@ -78,11 +93,20 @@ export default function CartPageClient() {
             {items.map((item) => {
               const key = cartItemKey(item);
               return (
-                <div key={key} className="flex gap-5 p-5 bg-white rounded-2xl border border-blush-100">
+                <div
+                  key={key}
+                  className="flex gap-5 p-5 bg-white rounded-2xl border border-blush-100"
+                >
                   {/* Image */}
                   <Link href={`/product/${item.id}`}>
                     <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-blush-50 shrink-0">
-                      <Image src={item.image_url} alt={item.name} fill className="object-cover" sizes="96px" />
+                      <Image
+                        src={item.image_url}
+                        alt={item.name}
+                        fill
+                        className="object-cover"
+                        sizes="96px"
+                      />
                     </div>
                   </Link>
 
@@ -99,7 +123,9 @@ export default function CartPageClient() {
                       </p>
                     )}
                     <p className="font-body text-xs text-blush-400 mt-0.5 capitalize">
-                      {item.category === 'candles' ? 'Scented Candle' : 'Handcraft'}
+                      {item.category === "candles"
+                        ? "Scented Candle"
+                        : "Handcraft"}
                     </p>
                     <p className="font-display text-xl font-semibold text-blush-700 mt-2">
                       ₹{item.price * item.quantity}
@@ -149,7 +175,9 @@ export default function CartPageClient() {
           {/* Order summary */}
           <div className="space-y-4">
             <div className="bg-white rounded-2xl border border-blush-100 p-6 space-y-4">
-              <h2 className="font-accent text-lg font-semibold text-blush-900">Order Summary</h2>
+              <h2 className="font-accent text-lg font-semibold text-blush-900">
+                Order Summary
+              </h2>
 
               {/* Coupon placeholder */}
               <div className="flex gap-2">
@@ -168,7 +196,9 @@ export default function CartPageClient() {
               <div className="space-y-3 border-t border-blush-50 pt-4">
                 <div className="flex justify-between font-body text-sm">
                   <span className="text-blush-500">Subtotal</span>
-                  <span className="text-blush-800 font-medium">₹{subtotal}</span>
+                  <span className="text-blush-800 font-medium">
+                    ₹{subtotal}
+                  </span>
                 </div>
                 <div className="flex justify-between font-body text-sm">
                   <span className="text-blush-500">Delivery</span>
@@ -192,16 +222,19 @@ export default function CartPageClient() {
               <div className="flex justify-between font-body border-t border-blush-100 pt-4">
                 <span className="text-blush-700 font-semibold">Total</span>
                 <span className="font-display text-2xl font-semibold text-blush-700">
-                  ₹{isLoading ? '...' : total}
+                  ₹{isLoading ? "..." : total}
                 </span>
               </div>
 
               <button
-                onClick={() => router.push('/checkout')}
+                onClick={() => router.push("/checkout")}
                 className="w-full flex items-center justify-center gap-2 py-4 bg-blush-400 hover:bg-blush-500 text-white font-body font-medium rounded-xl transition-all hover:shadow-lg hover:shadow-blush-200 group"
               >
                 Proceed to Checkout
-                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                <ArrowRight
+                  size={16}
+                  className="group-hover:translate-x-1 transition-transform"
+                />
               </button>
             </div>
 

@@ -1,3 +1,4 @@
+// components/BrandStory.tsx
 import { Heart, Leaf, Star } from "lucide-react";
 import Image from "next/image";
 

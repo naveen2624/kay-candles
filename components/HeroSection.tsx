@@ -1,3 +1,4 @@
+// components/HeroSection.tsx
 import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 import SearchBar from "./SearchBar";

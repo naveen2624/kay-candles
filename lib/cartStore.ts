@@ -1,28 +1,29 @@
-'use client';
+// lib/cartStore.ts
+"use client";
 
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 export type CartItem = {
-  id: string;              // product_id
-  variantId?: string;      // product_variants.id (if chosen)
-  name: string;            // product name
-  variantName?: string;    // e.g. "Strawberry Latte"
+  id: string; // product_id
+  variantId?: string; // product_variants.id (if chosen)
+  name: string; // product name
+  variantName?: string; // e.g. "Strawberry Latte"
   price: number;
   quantity: number;
-  image_url: string;       // variant image if has_variants, else product image
+  image_url: string; // variant image if has_variants, else product image
   category: string;
 };
 
 // Cart key = productId + variantId (so same product, diff variants = separate lines)
-export function cartItemKey(item: Pick<CartItem, 'id' | 'variantId'>) {
+export function cartItemKey(item: Pick<CartItem, "id" | "variantId">) {
   return item.variantId ? `${item.id}::${item.variantId}` : item.id;
 }
 
 type CartStore = {
   items: CartItem[];
   isOpen: boolean;
-  addItem: (item: Omit<CartItem, 'quantity'>) => void;
+  addItem: (item: Omit<CartItem, "quantity">) => void;
   removeItem: (key: string) => void;
   updateQuantity: (key: string, quantity: number) => void;
   clearCart: () => void;
@@ -45,7 +46,7 @@ export const useCartStore = create<CartStore>()(
         if (existing) {
           set({
             items: get().items.map((i) =>
-              cartItemKey(i) === key ? { ...i, quantity: i.quantity + 1 } : i
+              cartItemKey(i) === key ? { ...i, quantity: i.quantity + 1 } : i,
             ),
           });
         } else {
@@ -64,7 +65,7 @@ export const useCartStore = create<CartStore>()(
         }
         set({
           items: get().items.map((i) =>
-            cartItemKey(i) === key ? { ...i, quantity } : i
+            cartItemKey(i) === key ? { ...i, quantity } : i,
           ),
         });
       },
@@ -77,12 +78,11 @@ export const useCartStore = create<CartStore>()(
       getSubtotal: () =>
         get().items.reduce((sum, i) => sum + i.price * i.quantity, 0),
 
-      getItemCount: () =>
-        get().items.reduce((sum, i) => sum + i.quantity, 0),
+      getItemCount: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
     }),
     {
-      name: 'kay-candles-cart',
+      name: "kay-candles-cart",
       partialize: (s) => ({ items: s.items }),
-    }
-  )
+    },
+  ),
 );

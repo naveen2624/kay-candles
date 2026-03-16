@@ -1,3 +1,4 @@
+// app/candles/page.tsx
 import CategoryPageLayout from "@/components/CategoryPageLayout";
 import { getProducts } from "@/lib/supabase";
 
@@ -17,7 +18,7 @@ export default async function CandlesPage() {
       title="Scented Candles"
       subtitle="Hand-poured with love, fragranced with nature"
       products={products}
-      bannerImage="/hero/candlecollection.jpeg"
+      bannerImage="https://xcqewrligvirqwcebcyc.supabase.co/storage/v1/object/public/kaycandlesproducts/candles/candlecollection.jpeg"
     />
   );
 }

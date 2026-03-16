@@ -1,3 +1,4 @@
+// components/FeaturedProducts.tsx
 import { Product } from "@/lib/supabase";
 import ProductCard from "./ProductCard";
 import Link from "next/link";

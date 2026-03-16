@@ -1,12 +1,16 @@
-import { Product } from '@/lib/supabase';
-import ProductCard from './ProductCard';
+// components/SimilarProducts.tsx
+import { Product } from "@/lib/supabase";
+import ProductCard from "./ProductCard";
 
 type Props = {
   products: Product[];
   title?: string;
 };
 
-export default function SimilarProducts({ products, title = 'Similar Products' }: Props) {
+export default function SimilarProducts({
+  products,
+  title = "Similar Products",
+}: Props) {
   if (!products.length) return null;
 
   return (
@@ -16,7 +20,9 @@ export default function SimilarProducts({ products, title = 'Similar Products' }
           <p className="font-body text-xs text-blush-400 uppercase tracking-[0.25em] mb-3">
             Explore More
           </p>
-          <h2 className="font-display text-4xl font-light text-blush-900">{title}</h2>
+          <h2 className="font-display text-4xl font-light text-blush-900">
+            {title}
+          </h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {products.map((product) => (

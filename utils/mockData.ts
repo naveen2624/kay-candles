@@ -1,3 +1,4 @@
+// utils/mockData.ts
 // import { Product } from '@/lib/supabase';
 
 // export const mockProducts: Product[] = [

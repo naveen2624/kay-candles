@@ -1,5 +1,6 @@
-import Link from 'next/link';
-import { Instagram, Mail, Phone, Heart, Flame } from 'lucide-react';
+// components/Footer.tsx
+import Link from "next/link";
+import { Instagram, Mail, Phone, Heart, Flame } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -18,7 +19,8 @@ export default function Footer() {
               </span>
             </div>
             <p className="font-body text-sm text-blush-500 leading-relaxed max-w-xs">
-              Handcrafted with love in every pour and twist. Each piece is made to bring warmth, beauty, and joy to your space.
+              Handcrafted with love in every pour and twist. Each piece is made
+              to bring warmth, beauty, and joy to your space.
             </p>
             <div className="flex items-center gap-3 pt-2">
               <a
@@ -56,10 +58,10 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2.5">
               {[
-                { href: '/candles', label: 'Scented Candles' },
-                { href: '/crafts', label: 'Pipecleaner Flowers' },
-                { href: '/crafts', label: 'Gift Sets' },
-                { href: '/search?q=new', label: 'New Arrivals' },
+                { href: "/candles", label: "Scented Candles" },
+                { href: "/crafts", label: "Pipecleaner Flowers" },
+                { href: "/crafts", label: "Gift Sets" },
+                { href: "/search?q=new", label: "New Arrivals" },
               ].map((item) => (
                 <li key={item.label}>
                   <Link
@@ -80,10 +82,10 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2.5">
               {[
-                { label: 'About Us', href: '/' },
-                { label: 'Shipping Policy', href: '/' },
-                { label: 'Return Policy', href: '/' },
-                { label: 'Contact Us', href: '/' },
+                { label: "About Us", href: "/" },
+                { label: "Shipping Policy", href: "/" },
+                { label: "Return Policy", href: "/" },
+                { label: "Contact Us", href: "/" },
               ].map((item) => (
                 <li key={item.label}>
                   <Link
@@ -113,10 +115,13 @@ export default function Footer() {
       <div className="border-t border-blush-50 py-5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="font-body text-xs text-blush-300">
-            © {new Date().getFullYear()} Kay Candles and Craft. All rights reserved.
+            © {new Date().getFullYear()} Kay Candles and Craft. All rights
+            reserved.
           </p>
           <p className="font-body text-xs text-blush-300 flex items-center gap-1">
-            Made with <Heart size={10} className="text-blush-400 fill-blush-400" /> by hand
+            Made with{" "}
+            <Heart size={10} className="text-blush-400 fill-blush-400" /> by
+            hand
           </p>
         </div>
       </div>

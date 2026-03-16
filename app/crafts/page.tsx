@@ -1,3 +1,4 @@
+// app/crafts/page.tsx
 import CategoryPageLayout from "@/components/CategoryPageLayout";
 import { getProducts } from "@/lib/supabase";
 

@@ -1,3 +1,4 @@
+// lib/deliveryCalculator.ts
 // IMPORTANT: This file is used server-side only.
 // Product weight is never exposed to the frontend.
 // Delivery calculations happen exclusively in API routes.
@@ -17,7 +18,10 @@ export function roundUpToNearest500(weight: number): number {
  * Calculates delivery fee based on total order weight
  * Weight is fetched server-side — never passed from client
  */
-export function calculateDeliveryFee(totalWeightGrams: number, subtotal: number): number {
+export function calculateDeliveryFee(
+  totalWeightGrams: number,
+  subtotal: number,
+): number {
   if (subtotal > FREE_DELIVERY_THRESHOLD) {
     return 0;
   }

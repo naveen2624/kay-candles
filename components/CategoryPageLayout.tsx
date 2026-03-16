@@ -1,3 +1,4 @@
+// components/CategoryPageLayout.tsx
 "use client";
 
 import { useState, useMemo } from "react";
@@ -76,9 +77,9 @@ export default function CategoryPageLayout({
         <Image
           src={bannerImage}
           alt={title}
-          height={120}
-          width={120}
-          className="w-full h-full object-cover"
+          height={480}
+          width={480}
+          className="w-full h-full object-cover blur-sm"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-blush-900/60 via-blush-700/40 to-transparent" />
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">

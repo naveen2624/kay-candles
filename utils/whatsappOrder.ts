@@ -1,6 +1,7 @@
-import { CartItem } from '@/lib/cartStore';
+// utils/whatsappOrder.ts
+import { CartItem } from "@/lib/cartStore";
 
-const WHATSAPP_NUMBER = '919787174450';
+const WHATSAPP_NUMBER = "919787174450";
 
 type OrderDetails = {
   name: string;
@@ -20,10 +21,10 @@ export function formatWhatsAppMessage(order: OrderDetails): string {
         : item.name;
       return `• ${label} x${item.quantity} — ₹${item.price * item.quantity}`;
     })
-    .join('\n');
+    .join("\n");
 
   const deliveryText =
-    order.deliveryFee === 0 ? '₹0 (FREE 🎉)' : `₹${order.deliveryFee}`;
+    order.deliveryFee === 0 ? "₹0 (FREE 🎉)" : `₹${order.deliveryFee}`;
 
   return `🕯️ *New Order — Kay Candles and Craft*
 

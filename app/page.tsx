@@ -1,9 +1,10 @@
-import HeroSection from '@/components/HeroSection';
-import CategoryCards from '@/components/CategoryCards';
-import FeaturedProducts from '@/components/FeaturedProducts';
-import NewArrivals from '@/components/NewArrivals';
-import BrandStory from '@/components/BrandStory';
-import { getFeaturedProducts, getNewArrivals } from '@/lib/supabase';
+// app/page.tsx
+import HeroSection from "@/components/HeroSection";
+import CategoryCards from "@/components/CategoryCards";
+import FeaturedProducts from "@/components/FeaturedProducts";
+import NewArrivals from "@/components/NewArrivals";
+import BrandStory from "@/components/BrandStory";
+import { getFeaturedProducts, getNewArrivals } from "@/lib/supabase";
 
 export const revalidate = 60; // ISR: revalidate every 60 seconds
 

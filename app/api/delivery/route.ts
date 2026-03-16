@@ -1,13 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { calculateDeliveryFee } from '@/lib/deliveryCalculator';
-import { getProductWeightsForItems } from '@/lib/supabase';
+// app/api/delivery/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { calculateDeliveryFee } from "@/lib/deliveryCalculator";
+import { getProductWeightsForItems } from "@/lib/supabase";
 
 export async function POST(req: NextRequest) {
   try {
     const { items, subtotal } = await req.json();
 
     if (!items || !Array.isArray(items) || items.length === 0) {
-      return NextResponse.json({ error: 'Invalid items' }, { status: 400 });
+      return NextResponse.json({ error: "Invalid items" }, { status: 400 });
     }
 
     const totalWeight = await getProductWeightsForItems(items);
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
       // weight intentionally omitted
     });
   } catch (error) {
-    console.error('Delivery calculation error:', error);
+    console.error("Delivery calculation error:", error);
     return NextResponse.json({ deliveryFee: 80, isFreeDelivery: false });
   }
 }
