@@ -25,10 +25,9 @@ export default function ProductCard({ product, className, style }: Props) {
   const totalDiscount = getTotalDiscountPct(product);
   const originalPrice = getOriginalPrice(product);
 
-  const isProductOutOfStock = !hasVariants && product.stock <= 0;
-  const allVariantsOOS =
-    hasVariants && product.variants!.every((v) => v.is_out_of_stock);
-  const isOutOfStock = isProductOutOfStock || allVariantsOOS;
+  // Out of stock is ONLY driven by product.stock === 0
+  // Variants and fragrances have their own availability but do NOT grey out the card
+  const isOutOfStock = product.stock <= 0;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -94,11 +93,8 @@ export default function ProductCard({ product, className, style }: Props) {
             {product.variants!.slice(0, 5).map((v) => (
               <div
                 key={v.id}
-                className={cn(
-                  "relative w-8 h-8 rounded-lg overflow-hidden border-2 border-white shadow-sm shrink-0",
-                  v.is_out_of_stock && "grayscale opacity-60",
-                )}
-                title={v.is_out_of_stock ? `${v.name} (Out of stock)` : v.name}
+                className="relative w-8 h-8 rounded-lg overflow-hidden border-2 border-white shadow-sm shrink-0"
+                title={v.name}
               >
                 <Image
                   src={v.image_url}

@@ -27,6 +27,7 @@ function buildOrderEmailHtml(order: {
   items: Array<{
     name: string;
     variant_name?: string;
+    fragrance_name?: string;
     price: number;
     quantity: number;
     image_url: string;
@@ -62,7 +63,12 @@ function buildOrderEmailHtml(order: {
                 </p>
                 ${
                   item.variant_name
-                    ? `<p style="margin:3px 0 0;font-family:Arial,sans-serif;font-size:12px;color:#c9828a;">${item.variant_name}</p>`
+                    ? `<p style="margin:3px 0 0;font-family:Arial,sans-serif;font-size:12px;color:#c9828a;">Variant: ${item.variant_name}</p>`
+                    : ""
+                }
+                ${
+                  item.fragrance_name
+                    ? `<p style="margin:3px 0 0;font-family:Arial,sans-serif;font-size:12px;color:#c9828a;">Fragrance: ${item.fragrance_name}</p>`
                     : ""
                 }
                 <p style="margin:4px 0 0;font-family:Arial,sans-serif;font-size:12px;color:#a0687a;">

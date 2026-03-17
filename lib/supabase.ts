@@ -94,8 +94,8 @@ export type OrderItem = {
   product_id: string;
   variant_id?: string;
   name: string;
-  variant_name?: string;
-  fragrance_name?: string;
+  variant_name?: string; // e.g. "Blue" (variant colour)
+  fragrance_name?: string; // e.g. "Lavender" (candle fragrance)
   price: number;
   quantity: number;
   image_url: string;
@@ -117,7 +117,14 @@ export type Order = {
   payment_method: "COD" | "Razorpay";
   payment_id?: string;
   razorpay_order_id?: string;
-  status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
+  status:
+    | "pending"
+    | "received"
+    | "making"
+    | "booked_shipment"
+    | "dispatched"
+    | "delivered"
+    | "cancelled";
   created_at: string;
 };
 
@@ -378,4 +385,29 @@ export function getTotalDiscountPct(product: Product): number {
 export function getOriginalPrice(product: Product): number {
   const total = getTotalDiscountPct(product);
   return Math.round(product.price / (1 - total / 100));
+}
+
+// ----------------------------------------------------------------
+// OWNER DASHBOARD
+// ----------------------------------------------------------------
+export async function getAllOrders(): Promise<Order[]> {
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return (data ?? []) as Order[];
+}
+
+export async function updateOrderStatus(
+  orderId: string,
+  status: Order["status"],
+): Promise<void> {
+  const { error } = await supabase
+    .from("orders")
+    .update({ status })
+    .eq("id", orderId);
+
+  if (error) throw error;
 }

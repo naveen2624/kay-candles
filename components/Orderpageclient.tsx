@@ -9,42 +9,179 @@ import {
   Clock,
   X,
   ShoppingBag,
+  Hammer,
+  AlertCircle,
+  MapPin,
+  Phone,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { getOrderByNumber, Order } from "@/lib/supabase";
 import { cn } from "@/utils/cn";
 
-const STATUS_CONFIG = {
+// ── Types ──────────────────────────────────────────────────────────
+type OrderItem = {
+  product_id: string;
+  variant_id?: string;
+  name: string;
+  variant_name?: string;
+  fragrance_name?: string;
+  price: number;
+  quantity: number;
+  image_url: string;
+};
+
+type Order = {
+  id: string;
+  order_number: string | null;
+  customer_name: string;
+  phone: string;
+  email?: string;
+  address: string;
+  items: OrderItem[];
+  subtotal: number;
+  delivery_fee: number;
+  discount_amt: number;
+  coupon_code?: string;
+  total: number;
+  payment_method: string;
+  status: string; // string not union — handles any DB value safely
+  created_at: string;
+};
+
+// ── Status config ──────────────────────────────────────────────────
+const STATUS_MAP: Record<
+  string,
+  {
+    label: string;
+    icon: React.ElementType;
+    color: string;
+    bg: string;
+    border: string;
+    description: string;
+    step: number; // -1 = not on progress bar
+  }
+> = {
   pending: {
-    label: "Order Received",
+    label: "Order Placed",
     icon: Clock,
-    color: "text-amber-500 bg-amber-50 border-amber-200",
+    color: "text-amber-600",
+    bg: "bg-amber-50",
+    border: "border-amber-200",
+    description: "Your order has been placed and is awaiting confirmation.",
+    step: 0,
   },
-  confirmed: {
-    label: "Confirmed",
-    icon: CheckCircle,
-    color: "text-blue-500 bg-blue-50 border-blue-200",
+  received: {
+    label: "Order Received",
+    icon: Package,
+    color: "text-blue-600",
+    bg: "bg-blue-50",
+    border: "border-blue-200",
+    description:
+      "We've got your order! Preethi & Naveen will start on it soon.",
+    step: 1,
   },
-  shipped: {
-    label: "Shipped",
+  making: {
+    label: "Being Made",
+    icon: Hammer,
+    color: "text-purple-600",
+    bg: "bg-purple-50",
+    border: "border-purple-200",
+    description: "Your order is being handcrafted with love. ✨",
+    step: 2,
+  },
+  booked_shipment: {
+    label: "Shipment Booked",
     icon: Truck,
-    color: "text-purple-500 bg-purple-50 border-purple-200",
+    color: "text-orange-600",
+    bg: "bg-orange-50",
+    border: "border-orange-200",
+    description:
+      "Shipment booked! Your order will be handed to the courier soon.",
+    step: 3,
+  },
+  dispatched: {
+    label: "Dispatched",
+    icon: Truck,
+    color: "text-indigo-600",
+    bg: "bg-indigo-50",
+    border: "border-indigo-200",
+    description:
+      "Your order is on its way! Estimated delivery: 3–5 business days.",
+    step: 4,
   },
   delivered: {
     label: "Delivered",
     icon: CheckCircle,
-    color: "text-green-500 bg-green-50 border-green-200",
+    color: "text-green-600",
+    bg: "bg-green-50",
+    border: "border-green-200",
+    description: "Your order has been delivered. We hope you love it! 🕯️",
+    step: 5,
   },
   cancelled: {
     label: "Cancelled",
     icon: X,
-    color: "text-red-500 bg-red-50 border-red-200",
+    color: "text-red-500",
+    bg: "bg-red-50",
+    border: "border-red-200",
+    description:
+      "This order has been cancelled. Contact us on WhatsApp for help.",
+    step: -1,
+  },
+  // Legacy
+  confirmed: {
+    label: "Confirmed",
+    icon: CheckCircle,
+    color: "text-blue-600",
+    bg: "bg-blue-50",
+    border: "border-blue-200",
+    description: "Your order has been confirmed and is being prepared.",
+    step: 1,
+  },
+  shipped: {
+    label: "Shipped",
+    icon: Truck,
+    color: "text-indigo-600",
+    bg: "bg-indigo-50",
+    border: "border-indigo-200",
+    description:
+      "Your order is on its way! Estimated delivery: 3–5 business days.",
+    step: 4,
   },
 };
 
+const FALLBACK_STATUS = STATUS_MAP.pending;
+
+function getStatus(status: string) {
+  return (
+    STATUS_MAP[status] ?? {
+      ...FALLBACK_STATUS,
+      label: status,
+      description: "Your order is being processed.",
+    }
+  );
+}
+
+const PROGRESS_STEPS = [
+  "pending",
+  "received",
+  "making",
+  "booked_shipment",
+  "dispatched",
+  "delivered",
+] as const;
+
+// ── Item label ──────────────────────────────────────────────────────
+// function itemLabel(item: OrderItem): string {
+//   const parts = [item.name];
+//   if (item.variant_name) parts.push(item.variant_name);
+//   if (item.fragrance_name) parts.push(`${item.fragrance_name} fragrance`);
+//   return parts.join(" — ");
+// }
+
+// ── Main component ──────────────────────────────────────────────────
 export default function OrdersPageClient() {
-  const [orderInput, setOrderInput] = useState("");
+  const [input, setInput] = useState("");
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -52,18 +189,27 @@ export default function OrdersPageClient() {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!orderInput.trim()) return;
+    const q = input.trim().toUpperCase();
+    if (!q) return;
+
     setLoading(true);
     setError("");
     setOrder(null);
     setSearched(true);
+
     try {
-      const result = await getOrderByNumber(orderInput.trim());
-      if (!result)
+      const res = await fetch(
+        `/api/orders/lookup?order_number=${encodeURIComponent(q)}`,
+      );
+      const data = await res.json();
+
+      if (!res.ok || !data.order) {
         setError(
-          "No order found with that number. Please check and try again.",
+          "No order found. Check the number from your WhatsApp confirmation.",
         );
-      else setOrder(result);
+      } else {
+        setOrder(data.order as Order);
+      }
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -71,8 +217,9 @@ export default function OrdersPageClient() {
     }
   };
 
-  const status = order ? STATUS_CONFIG[order.status] : null;
-  const StatusIcon = status?.icon ?? Clock;
+  // Compute status config — always safe, never null
+  const statusCfg = order ? getStatus(order.status) : null;
+  const currentStep = order ? (statusCfg?.step ?? 0) : -1;
 
   return (
     <div className="min-h-screen bg-blush-50 py-10 px-4 sm:px-6 lg:px-8">
@@ -103,19 +250,37 @@ export default function OrdersPageClient() {
             <div className="flex-1 flex items-center gap-3 px-4 py-3 bg-blush-50 border border-blush-200 rounded-xl focus-within:ring-2 focus-within:ring-blush-300 transition-all">
               <Search size={16} className="text-blush-300 shrink-0" />
               <input
-                value={orderInput}
+                value={input}
                 onChange={(e) => {
-                  setOrderInput(e.target.value.toUpperCase());
+                  setInput(e.target.value.toUpperCase());
                   setError("");
+                  if (!e.target.value) {
+                    setOrder(null);
+                    setSearched(false);
+                  }
                 }}
                 placeholder="KCC-YYYYMMDD-XXXXXX"
                 className="flex-1 bg-transparent font-body text-sm text-blush-800 placeholder-blush-300 focus:outline-none uppercase tracking-wide"
               />
+              {input && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInput("");
+                    setOrder(null);
+                    setError("");
+                    setSearched(false);
+                  }}
+                  className="text-blush-300 hover:text-blush-500 transition-colors"
+                >
+                  <X size={14} />
+                </button>
+              )}
             </div>
             <button
               type="submit"
-              disabled={loading || !orderInput.trim()}
-              className="px-5 py-3 bg-blush-400 hover:bg-blush-500 text-white font-body font-medium rounded-xl transition-colors disabled:bg-blush-200 flex items-center gap-2"
+              disabled={loading || !input.trim()}
+              className="px-5 py-3 bg-blush-400 hover:bg-blush-500 text-white font-body font-medium rounded-xl transition-colors disabled:bg-blush-200 flex items-center gap-2 shrink-0"
             >
               {loading ? (
                 <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
@@ -125,70 +290,151 @@ export default function OrdersPageClient() {
               {loading ? "Searching…" : "Search"}
             </button>
           </div>
+
           {error && (
-            <p className="font-body text-xs text-red-500 mt-3 flex items-center gap-1.5">
-              <X size={12} /> {error}
-            </p>
+            <div className="flex items-start gap-2 mt-3 px-3 py-2.5 bg-red-50 border border-red-200 rounded-xl">
+              <AlertCircle size={14} className="text-red-500 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-body text-xs text-red-600">{error}</p>
+                <a
+                  href="https://wa.me/919787174450"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-body text-xs text-green-600 hover:underline mt-0.5 block"
+                >
+                  Can&apos;t find it? Ask us on WhatsApp →
+                </a>
+              </div>
+            </div>
           )}
         </form>
 
-        {/* Order result */}
-        {order && status && (
+        {/* ── Order result ── */}
+        {order && statusCfg && (
           <div className="bg-white rounded-2xl border border-blush-100 overflow-hidden animate-fade-up">
             {/* Status header */}
             <div
               className={cn(
                 "px-6 py-5 border-b flex items-center gap-4",
-                status.color.split(" ")[1],
-                `border-${status.color.split(" ")[2]?.replace("border-", "")}`,
+                statusCfg.bg,
+                statusCfg.border,
               )}
             >
               <div
                 className={cn(
-                  "w-12 h-12 rounded-full border-2 flex items-center justify-center",
-                  status.color,
+                  "w-12 h-12 rounded-full border-2 flex items-center justify-center shrink-0",
+                  statusCfg.bg,
+                  statusCfg.border,
                 )}
               >
-                <StatusIcon size={22} />
+                <statusCfg.icon size={22} className={statusCfg.color} />
               </div>
-              <div>
-                <p className="font-body text-xs text-blush-400 uppercase tracking-widest mb-0.5">
+              <div className="flex-1 min-w-0">
+                <p className="font-body text-[10px] text-blush-400 uppercase tracking-widest mb-0.5">
                   Order Status
                 </p>
                 <p
                   className={cn(
                     "font-accent text-xl font-semibold",
-                    status.color.split(" ")[0],
+                    statusCfg.color,
                   )}
                 >
-                  {status.label}
+                  {statusCfg.label}
+                </p>
+                <p className="font-body text-xs text-blush-500 mt-0.5 leading-relaxed">
+                  {statusCfg.description}
                 </p>
               </div>
-              <div className="ml-auto text-right">
-                <p className="font-body text-xs text-blush-400">Order Number</p>
+              <div className="text-right shrink-0">
+                <p className="font-body text-[10px] text-blush-400 uppercase tracking-widest">
+                  Order
+                </p>
                 <p className="font-accent text-sm font-bold text-blush-700">
-                  {order.order_number}
+                  {order.order_number ?? "—"}
                 </p>
               </div>
             </div>
 
+            {/* Progress bar */}
+            {order.status !== "cancelled" && currentStep >= 0 && (
+              <div className="px-6 py-4 border-b border-blush-100 overflow-x-auto">
+                <div className="flex items-center min-w-[480px]">
+                  {PROGRESS_STEPS.map((step, i) => {
+                    const s = getStatus(step);
+                    const done = i <= currentStep;
+                    const active = i === currentStep;
+                    return (
+                      <div
+                        key={step}
+                        className="flex items-center flex-1 last:flex-none"
+                      >
+                        <div className="flex flex-col items-center">
+                          <div
+                            className={cn(
+                              "w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all shrink-0",
+                              active
+                                ? "border-blush-400 bg-blush-400 shadow-md shadow-blush-200"
+                                : done
+                                  ? "border-blush-300 bg-blush-100"
+                                  : "border-blush-100 bg-white",
+                            )}
+                          >
+                            <s.icon
+                              size={13}
+                              className={
+                                active
+                                  ? "text-white"
+                                  : done
+                                    ? "text-blush-400"
+                                    : "text-blush-200"
+                              }
+                            />
+                          </div>
+                          <span
+                            className={cn(
+                              "font-body text-[9px] mt-1 text-center leading-tight w-12",
+                              active
+                                ? "text-blush-600 font-semibold"
+                                : done
+                                  ? "text-blush-400"
+                                  : "text-blush-200",
+                            )}
+                          >
+                            {s.label.split(" ")[0]}
+                          </span>
+                        </div>
+                        {i < PROGRESS_STEPS.length - 1 && (
+                          <div
+                            className={cn(
+                              "flex-1 h-0.5 mx-1 mb-4 rounded-full transition-all",
+                              i < currentStep ? "bg-blush-300" : "bg-blush-100",
+                            )}
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Order details */}
             <div className="p-6 space-y-5">
-              {/* Customer info */}
+              {/* Customer + date */}
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="p-4 bg-blush-50 rounded-xl">
-                  <p className="font-body text-[10px] text-blush-400 uppercase tracking-widest mb-1">
+                  <p className="font-body text-[10px] text-blush-400 uppercase tracking-widest mb-1.5">
                     Customer
                   </p>
                   <p className="font-body text-sm font-semibold text-blush-800">
                     {order.customer_name}
                   </p>
-                  <p className="font-body text-xs text-blush-500">
-                    {order.phone}
+                  <p className="font-body text-xs text-blush-500 flex items-center gap-1 mt-0.5">
+                    <Phone size={10} /> {order.phone}
                   </p>
                 </div>
                 <div className="p-4 bg-blush-50 rounded-xl">
-                  <p className="font-body text-[10px] text-blush-400 uppercase tracking-widest mb-1">
+                  <p className="font-body text-[10px] text-blush-400 uppercase tracking-widest mb-1.5">
                     Placed On
                   </p>
                   <p className="font-body text-sm font-semibold text-blush-800">
@@ -204,10 +450,10 @@ export default function OrdersPageClient() {
                 </div>
               </div>
 
-              {/* Delivery address */}
+              {/* Address */}
               <div>
-                <p className="font-body text-xs text-blush-400 uppercase tracking-widest mb-2">
-                  Delivery Address
+                <p className="font-body text-[10px] text-blush-400 uppercase tracking-widest mb-2 flex items-center gap-1">
+                  <MapPin size={10} /> Delivery Address
                 </p>
                 <p className="font-body text-sm text-blush-700 bg-blush-50 rounded-xl px-4 py-3 leading-relaxed">
                   {order.address}
@@ -216,42 +462,78 @@ export default function OrdersPageClient() {
 
               {/* Items */}
               <div>
-                <p className="font-body text-xs text-blush-400 uppercase tracking-widest mb-3">
+                <p className="font-body text-[10px] text-blush-400 uppercase tracking-widest mb-3">
                   Items Ordered
                 </p>
                 <div className="space-y-3">
-                  {order.items.map((item, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center gap-4 p-3 bg-blush-50 rounded-xl"
-                    >
-                      <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-blush-100 shrink-0">
-                        <Image
-                          src={item.image_url}
-                          alt={item.name}
-                          fill
-                          className="object-cover"
-                          sizes="56px"
-                        />
+                  {(order.items ?? []).map((item, i) => {
+                    // Detect if fragrance was stored inside variant_name (old orders)
+                    // vs new orders where fragrance_name is a separate field
+                    const fragranceLabel = item.fragrance_name
+                      ? item.fragrance_name
+                      : null;
+                    const variantLabel = item.variant_name || null;
+
+                    return (
+                      <div key={i} className="p-4 bg-blush-50 rounded-xl">
+                        <div className="flex items-start gap-4">
+                          {/* Product image */}
+                          <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-blush-100 shrink-0 border border-blush-200">
+                            {item.image_url ? (
+                              <Image
+                                src={item.image_url}
+                                alt={item.name}
+                                fill
+                                className="object-cover"
+                                sizes="64px"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <Package size={20} className="text-blush-200" />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Info */}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-accent text-sm font-semibold text-blush-800 leading-snug mb-2">
+                              {item.name}
+                            </p>
+
+                            {/* Variant + Fragrance pills */}
+                            <div className="flex flex-wrap gap-1.5 mb-2">
+                              {variantLabel && (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-blush-200 text-blush-600 text-[11px] font-body font-medium rounded-full">
+                                  <span className="text-blush-300">
+                                    Variant:
+                                  </span>
+                                  {variantLabel}
+                                </span>
+                              )}
+                              {fragranceLabel && (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-blush-200 text-blush-600 text-[11px] font-body font-medium rounded-full">
+                                  <span className="text-blush-300">🌸</span>
+                                  {fragranceLabel}
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="flex items-center justify-between">
+                              <span className="font-body text-xs text-blush-400">
+                                Qty:{" "}
+                                <strong className="text-blush-600">
+                                  {item.quantity}
+                                </strong>
+                              </span>
+                              <span className="font-display text-base font-semibold text-blush-700">
+                                ₹{item.price * item.quantity}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-body text-sm font-medium text-blush-800 truncate">
-                          {item.name}
-                        </p>
-                        {item.variant_name && (
-                          <p className="font-body text-xs text-blush-400">
-                            {item.variant_name}
-                          </p>
-                        )}
-                        <p className="font-body text-xs text-blush-400">
-                          Qty: {item.quantity}
-                        </p>
-                      </div>
-                      <p className="font-body text-sm font-semibold text-blush-700 shrink-0">
-                        ₹{item.price * item.quantity}
-                      </p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
@@ -271,7 +553,7 @@ export default function OrdersPageClient() {
                     )}
                   </span>
                 </div>
-                {order.discount_amt > 0 && (
+                {(order.discount_amt ?? 0) > 0 && (
                   <div className="flex justify-between font-body text-sm">
                     <span className="text-green-600">
                       Discount ({order.coupon_code})
@@ -296,7 +578,7 @@ export default function OrdersPageClient() {
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 flex-1 py-3 bg-green-500 hover:bg-green-600 text-white font-body text-sm font-medium rounded-xl transition-colors"
               >
-                Contact Us on WhatsApp
+                Need help? WhatsApp us
               </a>
               <Link
                 href="/"
@@ -308,20 +590,20 @@ export default function OrdersPageClient() {
           </div>
         )}
 
-        {/* Empty state after search */}
+        {/* No result after search */}
         {searched && !order && !loading && !error && (
-          <div className="text-center py-10">
+          <div className="text-center py-8">
             <p className="font-body text-sm text-blush-400">
               Enter your order number above to track your order.
             </p>
           </div>
         )}
 
-        {/* Helper text */}
+        {/* Pre-search helper */}
         {!searched && (
-          <div className="text-center">
-            <p className="font-body text-xs text-blush-400 mb-2">
-              Your order number was shared when you placed your order via Email.
+          <div className="text-center space-y-1">
+            <p className="font-body text-xs text-blush-400">
+              Your order number was sent in your WhatsApp order confirmation.
             </p>
             <a
               href="https://wa.me/919787174450"

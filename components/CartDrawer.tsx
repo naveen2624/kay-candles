@@ -114,6 +114,14 @@ export default function CartDrawer() {
                         {item.variantName}
                       </p>
                     )}
+                    {item.fragranceName && (
+                      <p className="font-body text-[11px] text-blush-400">
+                        {item.fragranceName}
+                      </p>
+                    )}
+                    <p className="font-body text-sm text-blush-600 mt-1 font-semibold">
+                      ₹{item.price * item.quantity}
+                    </p>
                     <p className="font-display text-base font-semibold text-blush-600 mt-0.5">
                       ₹{item.price * item.quantity}
                     </p>

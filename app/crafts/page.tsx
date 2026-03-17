@@ -18,7 +18,7 @@ export default async function CraftsPage() {
       title="Flowers & Crafts"
       subtitle="Handcrafted blooms that never fade"
       products={products}
-      bannerImage="/hero/pipecleanercollection.jpeg"
+      bannerImage="https://xcqewrligvirqwcebcyc.supabase.co/storage/v1/object/public/kaycandlesproducts/pipecleanercrafts/pipecleanercollection.jpeg"
     />
   );
 }

@@ -1,4 +1,3 @@
-// lib/cartStore.ts
 "use client";
 
 import { create } from "zustand";
@@ -6,18 +5,25 @@ import { persist } from "zustand/middleware";
 
 export type CartItem = {
   id: string; // product_id
-  variantId?: string; // product_variants.id (if chosen)
+  variantId?: string; // product_variants.id
   name: string; // product name
-  variantName?: string; // e.g. "Strawberry Latte"
+  variantName?: string; // e.g. "Strawberry" (variant)
+  fragranceName?: string; // e.g. "Lavender" (fragrance — candles only)
   price: number;
   quantity: number;
-  image_url: string; // variant image if has_variants, else product image
+  image_url: string;
   category: string;
 };
 
-// Cart key = productId + variantId (so same product, diff variants = separate lines)
-export function cartItemKey(item: Pick<CartItem, "id" | "variantId">) {
-  return item.variantId ? `${item.id}::${item.variantId}` : item.id;
+// Cart key = productId + variantId + fragranceName
+// so same product, different fragrance = separate line items
+export function cartItemKey(
+  item: Pick<CartItem, "id" | "variantId" | "fragranceName">,
+) {
+  const parts = [item.id];
+  if (item.variantId) parts.push(item.variantId);
+  if (item.fragranceName) parts.push(item.fragranceName);
+  return parts.join("::");
 }
 
 type CartStore = {

@@ -65,9 +65,9 @@ export default function ProductDetailClient({ product }: Props) {
   const originalPrice = getOriginalPrice(product);
 
   // Check if selected variant is out of stock
-  const variantOutOfStock = selectedVariant?.is_out_of_stock ?? false;
-  const productOutOfStock = product.stock <= 0;
-  const isOutOfStock = hasVariants ? variantOutOfStock : productOutOfStock;
+  // Out of stock is ONLY driven by product.stock === 0
+  // Individual variants/fragrances can show their own status but don't block the whole product
+  const isOutOfStock = product.stock <= 0;
 
   useEffect(() => {
     getReviewsForProduct(product.id)
@@ -101,7 +101,8 @@ export default function ProductDetailClient({ product }: Props) {
       id: product.id,
       variantId: selectedVariant?.id,
       name: product.name,
-      variantName: selectedVariant?.name ?? selectedFragrance ?? undefined,
+      variantName: selectedVariant?.name, // variant (e.g. "Blue", "Pink")
+      fragranceName: selectedFragrance ?? undefined, // fragrance (e.g. "Lavender")
       price: product.price,
       image_url: displayImage,
       category: product.category,
@@ -216,18 +217,13 @@ export default function ProductDetailClient({ product }: Props) {
                     setSelectedVariant(v);
                     setAttemptedAdd(false);
                   }}
-                  disabled={v.is_out_of_stock}
                   className={cn(
                     "relative h-16 rounded-xl overflow-hidden border-2 transition-all duration-200",
-                    v.is_out_of_stock
-                      ? "border-gray-200 opacity-50 cursor-not-allowed grayscale"
-                      : selectedVariant?.id === v.id
-                        ? "border-blush-400 scale-105 shadow-md shadow-blush-200"
-                        : "border-blush-100 hover:border-blush-300 opacity-80 hover:opacity-100",
+                    selectedVariant?.id === v.id
+                      ? "border-blush-400 scale-105 shadow-md shadow-blush-200"
+                      : "border-blush-100 hover:border-blush-300 opacity-80 hover:opacity-100",
                   )}
-                  title={
-                    v.is_out_of_stock ? `${v.name} — Out of Stock` : v.name
-                  }
+                  title={v.name}
                 >
                   <Image
                     src={v.image_url}
@@ -236,13 +232,6 @@ export default function ProductDetailClient({ product }: Props) {
                     className="object-cover"
                     sizes="80px"
                   />
-                  {v.is_out_of_stock && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-white/60">
-                      <span className="text-[8px] font-body text-gray-500 font-semibold text-center px-1">
-                        Out of Stock
-                      </span>
-                    </div>
-                  )}
                 </button>
               ))}
             </div>
@@ -376,24 +365,16 @@ export default function ProductDetailClient({ product }: Props) {
                       setSelectedVariant(v);
                       setAttemptedAdd(false);
                     }}
-                    disabled={v.is_out_of_stock}
                     className={cn(
                       "relative flex flex-col items-center gap-1.5 p-2 rounded-xl border-2 transition-all duration-200 group",
-                      v.is_out_of_stock
-                        ? "border-gray-200 bg-gray-50 cursor-not-allowed opacity-60"
-                        : selectedVariant?.id === v.id
-                          ? "border-blush-400 bg-blush-50 shadow-sm"
-                          : attemptedAdd
-                            ? "border-red-200 hover:border-blush-300"
-                            : "border-blush-100 hover:border-blush-300",
+                      selectedVariant?.id === v.id
+                        ? "border-blush-400 bg-blush-50 shadow-sm"
+                        : attemptedAdd
+                          ? "border-red-200 hover:border-blush-300"
+                          : "border-blush-100 hover:border-blush-300",
                     )}
                   >
-                    <div
-                      className={cn(
-                        "relative w-full h-16 rounded-lg overflow-hidden",
-                        v.is_out_of_stock && "grayscale",
-                      )}
-                    >
+                    <div className="relative w-full h-16 rounded-lg overflow-hidden">
                       <Image
                         src={v.image_url}
                         alt={v.name}
@@ -405,20 +386,14 @@ export default function ProductDetailClient({ product }: Props) {
                     <span
                       className={cn(
                         "font-body text-[11px] font-medium text-center leading-tight",
-                        v.is_out_of_stock
-                          ? "text-gray-400"
-                          : selectedVariant?.id === v.id
-                            ? "text-blush-700"
-                            : "text-blush-500",
+                        selectedVariant?.id === v.id
+                          ? "text-blush-700"
+                          : "text-blush-500",
                       )}
                     >
                       {v.name}
                     </span>
-                    {v.is_out_of_stock && (
-                      <span className="font-body text-[9px] text-gray-400">
-                        Out of stock
-                      </span>
-                    )}
+
                     {selectedVariant?.id === v.id && !v.is_out_of_stock && (
                       <div className="absolute top-1.5 right-1.5 w-4 h-4 bg-blush-400 rounded-full flex items-center justify-center">
                         <span className="text-white text-[8px]">✓</span>
@@ -453,29 +428,19 @@ export default function ProductDetailClient({ product }: Props) {
                   <button
                     key={pf.fragrance_id}
                     onClick={() => {
-                      if (pf.is_available) {
-                        setSelectedFragrance(pf.fragrance.name);
-                        setAttemptedAdd(false);
-                      }
+                      setSelectedFragrance(pf.fragrance.name);
+                      setAttemptedAdd(false);
                     }}
-                    disabled={!pf.is_available}
                     className={cn(
                       "px-4 py-2 rounded-full border-2 font-body text-xs font-medium transition-all duration-200",
-                      !pf.is_available
-                        ? "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed grayscale line-through"
-                        : selectedFragrance === pf.fragrance.name
-                          ? "border-blush-400 bg-blush-50 text-blush-700 shadow-sm"
-                          : attemptedAdd
-                            ? "border-red-200 text-blush-600 hover:border-blush-300"
-                            : "border-blush-100 text-blush-600 hover:border-blush-300 hover:bg-blush-50",
+                      selectedFragrance === pf.fragrance.name
+                        ? "border-blush-400 bg-blush-50 text-blush-700 shadow-sm"
+                        : attemptedAdd
+                          ? "border-red-200 text-blush-600 hover:border-blush-300"
+                          : "border-blush-100 text-blush-600 hover:border-blush-300 hover:bg-blush-50",
                     )}
                   >
                     {pf.fragrance.name}
-                    {!pf.is_available && (
-                      <span className="ml-1 text-[9px] font-normal">
-                        (Out of stock)
-                      </span>
-                    )}
                   </button>
                 ))}
               </div>
@@ -656,7 +621,7 @@ export default function ProductDetailClient({ product }: Props) {
           {reviewSubmitted ? (
             <div className="text-center py-4">
               <p className="font-body text-sm text-green-600 font-medium">
-                ✓ Review submitted! Thanks for your valueble Review.
+                ✓ Review submitted! It will appear after approval.
               </p>
             </div>
           ) : (

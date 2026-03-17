@@ -116,7 +116,12 @@ export default function CartPageClient() {
                     </Link>
                     {item.variantName && (
                       <p className="font-body text-xs text-blush-500 mt-0.5 font-medium">
-                        {item.variantName}
+                        Variant: {item.variantName}
+                      </p>
+                    )}
+                    {item.fragranceName && (
+                      <p className="font-body text-xs text-blush-500 mt-0.5 font-medium">
+                        🌸 {item.fragranceName}
                       </p>
                     )}
                     <p className="font-body text-xs text-blush-400 mt-0.5 capitalize">

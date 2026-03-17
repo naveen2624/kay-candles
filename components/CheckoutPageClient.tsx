@@ -192,6 +192,7 @@ export default function CheckoutPageClient() {
           variant_id: i.variantId,
           name: i.name,
           variant_name: i.variantName,
+          fragrance_name: i.fragranceName,
           price: i.price,
           quantity: i.quantity,
           image_url: i.image_url,
@@ -498,8 +499,7 @@ export default function CheckoutPageClient() {
               {/* Phone */}
               <div className="space-y-1.5">
                 <label className="font-body text-xs text-blush-600 font-medium flex items-center gap-1.5">
-                  <Phone size={12} className="text-blush-400" /> Phone Number
-                  (Whatsapp) *
+                  <Phone size={12} className="text-blush-400" /> Phone Number *
                 </label>
                 <div className="flex gap-2">
                   <div className="flex items-center px-3 bg-blush-50 border border-blush-100 rounded-xl">
@@ -684,8 +684,13 @@ export default function CheckoutPageClient() {
                         {item.name}
                       </p>
                       {item.variantName && (
-                        <p className="font-body text-[10px] text-blush-400">
-                          {item.variantName}
+                        <p className="font-body text-[10px] text-blush-500 font-medium">
+                          Variant: {item.variantName}
+                        </p>
+                      )}
+                      {item.fragranceName && (
+                        <p className="font-body text-[10px] text-blush-500 font-medium">
+                          🌸 {item.fragranceName}
                         </p>
                       )}
                       <p className="font-body text-[11px] text-blush-400">
