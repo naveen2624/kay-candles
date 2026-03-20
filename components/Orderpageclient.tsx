@@ -13,6 +13,7 @@ import {
   AlertCircle,
   MapPin,
   Phone,
+  ExternalLink,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -44,7 +45,10 @@ type Order = {
   coupon_code?: string;
   total: number;
   payment_method: string;
-  status: string; // string not union — handles any DB value safely
+  status: string;
+  awb_number?: string | null;
+  courier_name?: string | null;
+  tracking_url?: string | null;
   created_at: string;
 };
 
@@ -172,12 +176,12 @@ const PROGRESS_STEPS = [
 ] as const;
 
 // ── Item label ──────────────────────────────────────────────────────
-// function itemLabel(item: OrderItem): string {
-//   const parts = [item.name];
-//   if (item.variant_name) parts.push(item.variant_name);
-//   if (item.fragrance_name) parts.push(`${item.fragrance_name} fragrance`);
-//   return parts.join(" — ");
-// }
+function itemLabel(item: OrderItem): string {
+  const parts = [item.name];
+  if (item.variant_name) parts.push(item.variant_name);
+  if (item.fragrance_name) parts.push(`${item.fragrance_name} fragrance`);
+  return parts.join(" — ");
+}
 
 // ── Main component ──────────────────────────────────────────────────
 export default function OrdersPageClient() {
@@ -418,6 +422,45 @@ export default function OrdersPageClient() {
               </div>
             )}
 
+            {/* Shipment tracking (shown when booked/dispatched) */}
+            {(order.awb_number || order.courier_name) && (
+              <div className="px-6 py-4 border-b border-blush-100">
+                <div className="p-4 bg-indigo-50 border border-indigo-200 rounded-2xl">
+                  <p className="font-body text-[10px] font-bold text-indigo-600 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                    📦 Shipment Details
+                  </p>
+                  <div className="grid grid-cols-2 gap-4 mb-3">
+                    <div>
+                      <p className="font-body text-[10px] text-indigo-400 uppercase tracking-wide mb-1">
+                        Courier
+                      </p>
+                      <p className="font-accent text-sm font-bold text-indigo-800">
+                        {order.courier_name ?? "—"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="font-body text-[10px] text-indigo-400 uppercase tracking-wide mb-1">
+                        AWB Number
+                      </p>
+                      <p className="font-body text-sm font-bold text-indigo-800 font-mono tracking-widest">
+                        {order.awb_number ?? "—"}
+                      </p>
+                    </div>
+                  </div>
+                  {order.tracking_url && (
+                    <a
+                      href={order.tracking_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-body text-xs font-semibold rounded-xl transition-colors"
+                    >
+                      🔗 Track My Package →
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Order details */}
             <div className="p-6 space-y-5">
               {/* Customer + date */}
@@ -449,6 +492,53 @@ export default function OrdersPageClient() {
                   </p>
                 </div>
               </div>
+
+              {/* Tracking info — shown when shipment is booked */}
+              {(order.awb_number || order.courier_name) && (
+                <div className="p-4 bg-indigo-50 border border-indigo-200 rounded-xl">
+                  <p className="font-body text-[10px] font-bold text-indigo-500 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                    <Truck size={10} /> Shipment Tracking
+                  </p>
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    {order.courier_name && (
+                      <div>
+                        <p className="font-body text-[10px] text-indigo-400 uppercase tracking-wide mb-1">
+                          Courier
+                        </p>
+                        <p className="font-body text-sm font-bold text-indigo-800">
+                          {order.courier_name}
+                        </p>
+                      </div>
+                    )}
+                    {order.awb_number && (
+                      <div>
+                        <p className="font-body text-[10px] text-indigo-400 uppercase tracking-wide mb-1">
+                          AWB Number
+                        </p>
+                        <p className="font-body text-sm font-bold text-indigo-800 font-mono tracking-widest">
+                          {order.awb_number}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  {order.tracking_url && (
+                    <a
+                      href={order.tracking_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition-colors"
+                    >
+                      <ExternalLink size={12} /> Track My Package
+                    </a>
+                  )}
+                  {!order.tracking_url && (
+                    <p className="font-body text-xs text-indigo-500">
+                      Use AWB number on <strong>{order.courier_name}</strong>
+                      &apos;s website to track your package.
+                    </p>
+                  )}
+                </div>
+              )}
 
               {/* Address */}
               <div>

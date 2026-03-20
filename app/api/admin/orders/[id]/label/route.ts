@@ -108,22 +108,24 @@ export async function GET(_req: NextRequest, { params }: Props) {
     /* Header */
     .label-header {
       background: linear-gradient(135deg, #ffa0b4, #ff6b8a);
-      padding: 14px 18px;
+      padding: 12px 18px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 12px;
     }
-    .label-header .brand {
-      font-size: 15px;
-      font-weight: 700;
-      color: #fff;
-      letter-spacing: 0.3px;
+    .label-header .logo {
+      height: 44px;
+      width: auto;
+      display: block;
+      filter: brightness(0) invert(1);
     }
     .label-header .order-num {
       font-size: 11px;
       color: rgba(255,255,255,0.85);
-      font-weight: 500;
+      font-weight: 600;
       letter-spacing: 0.5px;
+      white-space: nowrap;
     }
 
     /* Body */
@@ -293,7 +295,7 @@ export async function GET(_req: NextRequest, { params }: Props) {
 
     <!-- Header -->
     <div class="label-header">
-      <span class="brand">Kay Candles and Craft</span>
+      <img src="https://xcqewrligvirqwcebcyc.supabase.co/storage/v1/object/public/kaycandlesproducts/logo.png" alt="Kay Candles and Craft" class="logo" />
       <span class="order-num">${order.order_number}</span>
     </div>
 
@@ -350,7 +352,7 @@ export async function GET(_req: NextRequest, { params }: Props) {
         <h3>Thank You, ${order.customer_name.split(" ")[0]}!</h3>
         <p>
           Every piece in your order was handcrafted with love
-          by Preethi &amp; Naveen. We hope it brings warmth
+          by Preethi. We hope it brings warmth
           and joy to your space. &#x2728;
         </p>
         <p>
