@@ -224,7 +224,7 @@ export default function AboutPageClient() {
       </section>
 
       {/* ── Meet the Makers ── */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-blush-50">
+      {/* <section className="py-20 px-4 sm:px-6 lg:px-8 bg-blush-50">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <p className="font-body text-xs text-blush-400 uppercase tracking-[0.25em] mb-3">
@@ -236,7 +236,6 @@ export default function AboutPageClient() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-8">
-            {/* Preethi */}
             <div className="bg-white rounded-3xl border border-blush-100 overflow-hidden shadow-sm">
               <div className="relative h-64">
                 <Image
@@ -273,7 +272,6 @@ export default function AboutPageClient() {
               </div>
             </div>
 
-            {/* Naveen */}
             <div className="bg-white rounded-3xl border border-blush-100 overflow-hidden shadow-sm">
               <div className="relative h-64">
                 <Image
@@ -313,7 +311,6 @@ export default function AboutPageClient() {
             </div>
           </div>
 
-          {/* Together */}
           <div className="mt-8 bg-white rounded-3xl border border-blush-100 p-8 text-center">
             <Sparkles size={20} className="text-blush-300 mx-auto mb-4" />
             <p className="font-display text-2xl font-light text-blush-800 max-w-2xl mx-auto leading-relaxed">
@@ -324,7 +321,7 @@ export default function AboutPageClient() {
             </p>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* ── CTA ── */}
       <section className="py-20 px-4 bg-white text-center">
